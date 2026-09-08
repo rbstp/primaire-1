@@ -47,11 +47,11 @@ import Testing
         #expect((0...9).map { Pronunciation.numberWord($0).text } == expected)
     }
 
-    /// The prompt is the sound itself, said twice, with nothing spoken around
-    /// it: an instruction repeated ten times a session wears out fast.
-    @Test func saysALetterSoundTwiceAndNothingElse() {
+    /// "La lettre a", twice, with no instruction around it: an instruction
+    /// repeated ten times a session wears out fast.
+    @Test func namesTheLetterTwiceAndNothingElse() {
         let script = Pronunciation.script(for: .spokenLetter("a"))
-        #expect(script == [Pronunciation.letterSound("a"), Pronunciation.letterSound("a")])
+        #expect(script.map(\.text) == ["La lettre a", "La lettre a"])
     }
 
     @Test func saysANumberTwiceByItsWord() {
@@ -59,15 +59,16 @@ import Testing
         #expect(script.map(\.text) == ["sept", "sept"])
     }
 
-    @Test func usesTheVowelSoundNotItsName() {
-        #expect(Pronunciation.script(for: .spokenLetter("y")).first == Pronunciation.letterSound("y"))
-        #expect(Pronunciation.script(for: .spokenLetter("e")).first?.text == "eu")
+    /// The name, not the sound: y is asked as "i grec", the way the class says it.
+    @Test func usesTheLetterNameNotItsSound() {
+        #expect(Pronunciation.script(for: .spokenLetter("y")).first?.text == "La lettre i grec")
+        #expect(Pronunciation.script(for: .spokenLetter("h")).first?.text == "La lettre hache")
     }
 
     @Test func asksTheCountingQuestionInFrench() {
-        let script = Pronunciation.script(for: .shurikens(4))
+        let script = Pronunciation.script(for: .bricks(4))
         #expect(script.count == 1)
-        #expect(script[0].text.contains("shurikens"))
+        #expect(script[0].text.contains("briques"))
     }
 
     @Test func correctsWithTheLetterName() {

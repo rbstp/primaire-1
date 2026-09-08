@@ -1,26 +1,16 @@
 import SwiftUI
 
-/// The one card shape the whole app uses.
+/// The one plate the whole app stacks its content on: a wide black brick, or
+/// a blue one when it is the thing to look at.
 struct NinjaCard<Content: View>: View {
     var tinted = false
     @ViewBuilder var content: Content
 
     var body: some View {
-        content
-            .padding(18)
-            .background(background, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(Palette.blade.opacity(tinted ? 0.7 : 0.25).color, lineWidth: 2)
-            )
-    }
-
-    private var background: AnyShapeStyle {
-        guard tinted else { return AnyShapeStyle(Palette.slate.color) }
-        return AnyShapeStyle(LinearGradient(
-            colors: [Palette.bladeDeep.color, Palette.slate.color],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        ))
+        Brick(tone: tinted ? .blue : .night, studs: 6, depth: 8, cornerRadius: 12) {
+            content
+                .padding(18)
+                .frame(maxWidth: .infinity)
+        }
     }
 }

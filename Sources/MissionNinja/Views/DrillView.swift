@@ -15,7 +15,7 @@ struct DrillView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             content
             if let runner {
                 StarBurst(trigger: runner.starBursts)
@@ -33,7 +33,7 @@ struct DrillView: View {
             VStack(spacing: 14) {
                 modePicker
                     .padding(.horizontal, 20)
-                ProgressBar(value: runner.advance)
+                BrickProgress(done: runner.settled, total: runner.total)
                     .padding(.horizontal, 20)
 
                 ViewThatFits(in: .vertical) {
@@ -53,7 +53,7 @@ struct DrillView: View {
 
     private func layout(runner: DrillRunner, drill: Drill, spacing: CGFloat) -> some View {
         VStack(spacing: spacing) {
-            PromptView(prompt: drill.prompt, replay: runner.speakPrompt)
+            PromptView(prompt: drill.prompt, seed: drill.id, replay: runner.speakPrompt)
                 .padding(.top, spacing)
 
             ChoiceGrid(
@@ -89,6 +89,7 @@ struct DrillView: View {
 
 private struct PromptView: View {
     let prompt: DrillPrompt
+    let seed: Int
     let replay: () -> Void
 
     var body: some View {
@@ -103,25 +104,23 @@ private struct PromptView: View {
                 Button(action: replay) {
                     Image(systemName: "speaker.wave.3.fill")
                         .font(.system(size: 44, weight: .bold))
-                        .foregroundStyle(.ninjaCream)
-                        .frame(width: 116, height: 116)
-                        .background(LinearGradient.ninjaBlade, in: Circle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(StudButtonStyle(diameter: 116))
                 .accessibilityLabel("Réécouter")
-            case let .shurikens(count):
-                ShurikenCluster(count: count)
+            case let .bricks(count):
+                BrickCluster(count: count, seed: seed)
                     .padding(.vertical, 6)
             }
         }
         .padding(.horizontal, 24)
     }
 
+    /// School words: a chiffre goes from 0 to 9, anything past that is a nombre.
     private var question: String {
         switch prompt {
         case .spokenLetter: "Écoute, puis touche la bonne lettre."
-        case .spokenNumber: "Écoute, puis touche le bon chiffre."
-        case .shurikens: "Combien de shurikens vois-tu?"
+        case let .spokenNumber(value): value <= 9 ? "Écoute, puis touche le bon chiffre." : "Écoute, puis touche le bon nombre."
+        case .bricks: "Combien de briques vois-tu?"
         }
     }
 }
@@ -164,22 +163,32 @@ private struct ChoiceGrid: View {
     }
 }
 
-private struct ProgressBar: View {
-    let value: Double
+/// One small brick per drill, clicked into a row as they are settled.
+struct BrickProgress: View {
+    let done: Int
+    let total: Int
 
     var body: some View {
-        GeometryReader { frame in
-            ZStack(alignment: .leading) {
-                Capsule().fill(Palette.slate.color)
-                Capsule()
-                    .fill(LinearGradient.ninjaBlade)
-                    .frame(width: max(8, frame.size.width * value))
+        HStack(spacing: 4) {
+            ForEach(0..<max(total, 1), id: \.self) { index in
+                if index < done {
+                    Brick(tone: .blue, studs: 1, depth: 3, cornerRadius: 3) {
+                        Color.clear.frame(height: 8)
+                    }
+                    .transition(.scale(scale: 1.5).combined(with: .opacity))
+                } else {
+                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                        .stroke(Palette.blade.opacity(0.4).color, style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                        .frame(height: 8)
+                        .padding(.top, 3.6)
+                        .padding(.bottom, 3)
+                }
             }
         }
-        .frame(height: 12)
-        .animation(.easeOut(duration: 0.25), value: value)
+        .animation(.spring(duration: 0.3, bounce: 0.4), value: done)
+        .accessibilityElement()
         .accessibilityLabel("Avancement")
-        .accessibilityValue("\(Int(value * 100)) pour cent")
+        .accessibilityValue("\(done) sur \(total)")
     }
 }
 
@@ -188,9 +197,14 @@ private struct DrillDoneView: View {
     let again: () -> Void
     let leave: () -> Void
 
+    /// The reward at the end of a run: one of the three little scenes, drawn
+    /// when the screen appears so the ending is not always the same.
+    @State private var celebration = Celebration.draw()
+
     var body: some View {
         VStack(spacing: 26) {
-            NinjaMascot(mood: .happy, size: 140)
+            CelebrationView(kind: celebration)
+                .frame(maxHeight: 200)
             Text("Entraînement terminé!")
                 .font(Typography.screenTitle)
                 .foregroundStyle(.ninjaCream)

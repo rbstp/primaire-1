@@ -36,19 +36,21 @@ enum Pronunciation {
         "aeiouy".contains(Character(String(character).lowercased()))
     }
 
-    /// Just the sound, twice. A spoken instruction on top of it would be
-    /// repeated ten times a session, and the written instruction on screen
-    /// already says what to do.
+    /// Said twice, with no instruction around it: one would be repeated ten
+    /// times a session, and the screen already says what to do. A letter is
+    /// named as "la lettre a": bare, a one syllable name went by too fast. One
+    /// phrase, not two utterances, or the pause between them makes the name
+    /// run into the next "la lettre".
     static func script(for prompt: DrillPrompt) -> [Utterance] {
         switch prompt {
         case let .spokenLetter(character):
-            let sound = letterSound(character)
-            return [sound, sound]
+            let phrase = Utterance("La lettre \(letterName(character).text)")
+            return [phrase, phrase]
         case let .spokenNumber(value):
             let word = numberWord(value)
             return [word, word]
-        case .shurikens:
-            return [Utterance("Combien de shurikens vois-tu?")]
+        case .bricks:
+            return [Utterance("Combien de briques vois-tu?")]
         }
     }
 

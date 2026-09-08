@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// "Je chante la chanson de l'alphabet." Sing along, where the app walks the
-/// alphabet out loud, or find the letters in order among the shuffled tiles.
+/// alphabet out loud, or find the letters in order among the shuffled bricks.
+/// Every letter found lays a brick of the dragon; once whole, the ninja fights it.
 struct AlphabetView: View {
     let week: Week
 
@@ -16,9 +17,20 @@ struct AlphabetView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 18) {
+                    if let run {
+                        DragonScene(
+                            done: run.reached,
+                            total: run.letters.count,
+                            onRoar: { effects.play(.roar) },
+                            onSlash: { effects.play(.stroke) }
+                        )
+                        .frame(maxHeight: 230)
+                        .padding(.horizontal, 24)
+                    }
+
                     HStack(spacing: 14) {
                         Text(instruction)
                             .font(Typography.body)
@@ -28,11 +40,8 @@ struct AlphabetView: View {
                             Button(action: sayExpected) {
                                 Image(systemName: "speaker.wave.3.fill")
                                     .font(.system(size: 22, weight: .bold))
-                                    .foregroundStyle(.ninjaCream)
-                                    .frame(width: 54, height: 54)
-                                    .background(LinearGradient.ninjaBlade, in: Circle())
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(StudButtonStyle(diameter: 54))
                             .accessibilityLabel("Réécouter la lettre à trouver")
                         }
                     }
@@ -90,15 +99,14 @@ struct AlphabetView: View {
     /// glyph against the grid, which is the whole exercise.
     private var instruction: String {
         guard let run else { return "" }
-        return run.expected == nil ? "Tu as fait tout l'alphabet. Bravo!" : "Écoute, puis trouve la lettre."
+        return run.expected == nil ? "Le dragon est fini!" : "Écoute, puis trouve la lettre."
     }
 
     /// The letter to look for is spoken, never outlined: an outline would hand
     /// him the answer.
     private func sayExpected() {
         guard let expected = run?.expected else { return }
-        let name = Pronunciation.letterName(expected)
-        speaker.say([name, name])
+        speaker.say(Pronunciation.script(for: .spokenLetter(expected)))
     }
 
     private func touch(_ letter: Character) {
@@ -110,7 +118,7 @@ struct AlphabetView: View {
             speaker.say([Utterance("C'est le"), Pronunciation.letterName(letter)])
             return
         }
-        effects.play(.right)
+        effects.play(.snap)
         if current.isComplete {
             effects.play(.belt)
             speaker.say(Pronunciation.praise(0))
@@ -156,28 +164,20 @@ private struct AlphabetCell: View {
     let isSinging: Bool
 
     var body: some View {
-        Text(String(letter))
-            .font(Typography.glyph(30))
-            .foregroundStyle(isDone ? Color.ninjaBamboo : .ninjaCream)
-            .frame(maxWidth: .infinity, minHeight: 60)
-            .background(fill, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(edge, lineWidth: isSinging ? 3 : 1.5)
-            )
-            .animation(.easeOut(duration: 0.15), value: isSinging)
-            .accessibilityLabel("Lettre \(letter)")
+        Brick(tone: tone, studs: 2, depth: 5, cornerRadius: 7, pressed: isDone) {
+            Text(String(letter))
+                .font(Typography.glyph(28))
+                .foregroundStyle(isDone ? Palette.cream.opacity(0.45).color : .ninjaCream)
+                .frame(maxWidth: .infinity, minHeight: 50)
+        }
+        .animation(.easeOut(duration: 0.15), value: isSinging)
+        .accessibilityLabel("Lettre \(letter)")
     }
 
-    private var fill: Color {
-        if isSinging { return Palette.bladeDeep.color }
-        if isDone { return Palette.bamboo.opacity(0.18).color }
-        return Palette.slate.color
-    }
-
-    private var edge: Color {
-        if isSinging { return .ninjaAzure }
-        if isDone { return .ninjaBamboo }
-        return Palette.blade.opacity(0.25).color
+    /// A found letter sinks into the plate, greyed: it has gone into the dragon.
+    private var tone: BrickTone {
+        if isSinging { return .azure }
+        if isDone { return .night }
+        return .black
     }
 }

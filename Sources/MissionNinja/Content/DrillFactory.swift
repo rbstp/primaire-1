@@ -67,7 +67,7 @@ enum DrillFactory {
         return drills
     }
 
-    /// Counting starts at one, because no shuriken on screen is not a puzzle.
+    /// Counting starts at one, because no brick on screen is not a puzzle.
     /// Distractors sit next to the answer so he has to count rather than
     /// eyeball the pile.
     private static func countingDrill(
@@ -87,11 +87,11 @@ enum DrillFactory {
         var picked = Array(neighbours.prefix(max(width - 1, 1)))
         picked.append(target)
         let choices = random.shuffled(picked).map(DrillChoice.number)
-        return drill(id: id, kind: .countObjects, prompt: .shurikens(target), choices: choices, answer: .number(target))
+        return drill(id: id, kind: .countObjects, prompt: .bricks(target), choices: choices, answer: .number(target))
     }
 
     private static func countedValue(of drill: Drill) -> Int? {
-        guard case let .shurikens(count) = drill.prompt else { return nil }
+        guard case let .bricks(count) = drill.prompt else { return nil }
         return count
     }
 

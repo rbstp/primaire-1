@@ -91,8 +91,8 @@ private func week(
             var random = SeededRandom(seed: seed)
             let drills = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &random)
             for drill in drills where drill.kind == .countObjects {
-                guard case let .shurikens(count) = drill.prompt else {
-                    Issue.record("a counting drill must show shurikens")
+                guard case let .bricks(count) = drill.prompt else {
+                    Issue.record("a counting drill must show bricks")
                     continue
                 }
                 #expect((1...9).contains(count))
@@ -106,7 +106,7 @@ private func week(
         var random = SeededRandom(seed: 6)
         let drills = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &random)
         for drill in drills where drill.kind == .countObjects {
-            guard case let .shurikens(count) = drill.prompt else { continue }
+            guard case let .bricks(count) = drill.prompt else { continue }
             let spread = drill.choices.compactMap { choice -> Int? in
                 guard case let .number(value) = choice else { return nil }
                 return abs(value - count)

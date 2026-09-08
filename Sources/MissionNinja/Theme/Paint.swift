@@ -25,7 +25,8 @@ struct Paint: Equatable, Sendable {
 
 /// Black and blue carry the app: black grounds every screen, blue is the only
 /// accent that means "this is yours to touch". Gold is reserved for stars,
-/// green for a right answer, red only for a gentle miss.
+/// green for a right answer, red only for a gentle miss. Everything touchable
+/// is a brick in one of those colours.
 enum Palette {
     static let ink = Paint(red: 0.031, green: 0.035, blue: 0.047)
     static let night = Paint(red: 0.051, green: 0.063, blue: 0.098)
@@ -40,6 +41,9 @@ enum Palette {
     static let gold = Paint(red: 0.976, green: 0.749, blue: 0.216)
     static let bamboo = Paint(red: 0.290, green: 0.784, blue: 0.482)
     static let crimson = Paint(red: 0.898, green: 0.353, blue: 0.325)
+
+    /// The minifig's skin, seen only through the eye slit of the hood.
+    static let skin = Paint(red: 0.965, green: 0.769, blue: 0.271)
 }
 
 enum BeltPaint {

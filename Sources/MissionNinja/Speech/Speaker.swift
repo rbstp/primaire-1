@@ -10,7 +10,7 @@ import Foundation
 @MainActor
 @Observable
 final class Speaker {
-    static let rate: Float = 0.42
+    static let rate: Float = 0.36
     static let gapBetweenUtterances: TimeInterval = 0.12
 
     private let synthesizer = AVSpeechSynthesizer()

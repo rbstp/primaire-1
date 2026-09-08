@@ -2,9 +2,9 @@
 
 Une app d'entraînement pour la 1re année, à l'école Notre-Dame-de-La-Paix. L'enseignante distribue un plan de leçons par semaine; l'app en prend la partie répétitive et la rend jouable: reconnaître les voyelles et leur bruit, chanter l'alphabet, lire les chiffres de 0 à 9, compter, et écrire les lettres au doigt. Le reste du plan, celui qui se fait sur papier, se coche dans le carnet.
 
-Thème ninja, bleu et noir, tout en français canadien. Une voix dit chaque consigne, parce qu'il ne lit pas encore. Les étoiles gagnées font monter les ceintures, de la blanche à la noire.
+Thème ninja et blocs de construction, bleu et noir, tout en français canadien. Chaque bouton est une brique qui s'enfonce quand on appuie, la mascotte est un petit ninja à cagoule avec son katana, et chaque lettre de l'alphabet trouvée pose une brique d'un dragon que le ninja combat une fois fini. Chaque entraînement terminé se célèbre par une petite scène animée: le dragon, une pile de briques abattue au shuriken, ou une tour à escalader. Une voix dit chaque consigne, parce qu'il ne lit pas encore. Les étoiles gagnées font monter les ceintures, de la blanche à la noire.
 
-Tout est généré en code: aucune dépendance tierce, aucun fichier audio, aucune image. Les effets sonores sont synthétisés au lancement, l'icône vient d'un script, et les lettres à tracer sont des suites de traits écrites à la main dans l'ordre où on les enseigne.
+Tout est généré en code: aucune dépendance tierce, aucun fichier audio, aucune image. Les effets sonores sont synthétisés au lancement, l'icône vient d'un script, le dragon est une mosaïque écrite en texte, et les lettres à tracer sont des suites de traits écrites à la main dans l'ordre où on les enseigne.
 
 ## Build
 
@@ -30,13 +30,13 @@ Pour tester la voix, il faut un appareil réel. Le simulateur n'a pratiquement a
 Sources/MissionNinja/
   App/        la scène SwiftUI et l'aiguillage
   Model/      semaine, jour, glyphe, ceinture, géométrie
-  Content/    catalogue des semaines, fabrique d'épreuves, bibliothèque de glyphes
+  Content/    catalogue des semaines, fabrique d'épreuves, bibliothèque de glyphes, plan du dragon
   Engine/     session d'entraînement, validateur de tracé, générateur aléatoire
   Store/      progression, statistiques, persistance
   Speech/     choix de la voix et prononciation
   Audio/      synthèse des effets sonores
-  Theme/      palette, typographie
-  Views/      les écrans et leurs composants
+  Theme/      palette, teintes de brique, typographie
+  Views/      les écrans et leurs composants, dont la brique et le dragon
 Resources/Weeks/   un fichier JSON par semaine
 Tests/             la suite Swift Testing
 scripts/           générateur d'icône, options d'export

@@ -44,6 +44,8 @@ final class DrillRunner {
     var isFinished: Bool { session.isFinished && shown == nil }
     var isWaiting: Bool { picked != nil }
     var advance: Double { session.advance }
+    var settled: Int { session.settled }
+    var total: Int { session.total }
     var stars: Int { session.stars }
 
     func begin() {

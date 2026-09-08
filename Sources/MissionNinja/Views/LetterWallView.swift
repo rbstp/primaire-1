@@ -15,7 +15,7 @@ struct LetterWallView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
                     Text("Touche une voyelle pour entendre son nom, puis son bruit.")
@@ -70,6 +70,15 @@ struct LetterWallView: View {
     }
 }
 
+private struct BrickFrame: ViewModifier {
+    let tone: BrickTone
+    let pressed: Bool
+
+    func body(content: Content) -> some View {
+        Brick(tone: tone, studs: 3, depth: 9, cornerRadius: 12, pressed: pressed) { content }
+    }
+}
+
 private struct VowelCard: View {
     let letter: Character
     let isSpeaking: Bool
@@ -83,12 +92,8 @@ private struct VowelCard: View {
                 .foregroundStyle(Palette.cream.opacity(0.55).color)
         }
         .foregroundStyle(.ninjaCream)
-        .frame(maxWidth: .infinity, minHeight: 112)
-        .background(isSpeaking ? Palette.bladeDeep.color : Palette.slate.color, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(isSpeaking ? Color.ninjaAzure : Palette.blade.opacity(0.35).color, lineWidth: 2)
-        )
+        .frame(maxWidth: .infinity, minHeight: 104)
+        .modifier(BrickFrame(tone: isSpeaking ? .blue : .black, pressed: isSpeaking))
         .animation(.easeOut(duration: 0.15), value: isSpeaking)
         .accessibilityLabel("Lettre \(letter)")
     }
