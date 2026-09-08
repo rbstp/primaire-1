@@ -1,0 +1,7 @@
+version: 2
+updates:
+  # No third party dependencies, so only the actions themselves need watching.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

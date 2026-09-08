@@ -1,0 +1,82 @@
+name: MissionNinja
+
+options:
+  bundleIdPrefix: dev.rbstp
+  createIntermediateGroups: true
+  generateEmptyDirectories: false
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "27.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: RM3UT3MMSR
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    STRING_CATALOG_GENERATE_SYMBOLS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    # Overridden from the command line by the TestFlight workflow.
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  MissionNinja:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/MissionNinja
+      - path: Resources/Assets.xcassets
+      - path: Resources/PrivacyInfo.xcprivacy
+      # Folder reference: the week files ship as MissionNinja.app/Weeks/*.json
+      - path: Resources/Weeks
+        type: folder
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.rbstp.missionninja
+        PRODUCT_NAME: MissionNinja
+        INFOPLIST_FILE: Resources/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "1,2"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTED_PLATFORMS: "iphoneos iphonesimulator"
+      configs:
+        Debug:
+          CODE_SIGN_STYLE: Automatic
+          CODE_SIGN_IDENTITY: "Apple Development"
+        Release:
+          CODE_SIGN_STYLE: Manual
+          CODE_SIGN_IDENTITY: "Apple Distribution"
+          # The TestFlight workflow overrides this with the name read from the profile itself.
+          PROVISIONING_PROFILE_SPECIFIER: "Mission Ninja App Store"
+
+  MissionNinjaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/MissionNinjaTests
+    dependencies:
+      - target: MissionNinja
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+
+schemes:
+  MissionNinja:
+    build:
+      targets:
+        MissionNinja: all
+        MissionNinjaTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: false
+      targets:
+        - MissionNinjaTests
+    archive:
+      config: Release

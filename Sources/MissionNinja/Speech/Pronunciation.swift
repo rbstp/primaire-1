@@ -1,0 +1,120 @@
+import Foundation
+
+/// Text handed to the synthesiser, with an optional phonetic spelling for the
+/// cases where a bare character comes out wrong. The text alone is always
+/// correct French, so a voice that ignores the phonetic hint still says the
+/// right thing.
+struct Utterance: Equatable, Sendable {
+    let text: String
+    var ipa: String?
+
+    init(_ text: String, ipa: String? = nil) {
+        self.text = text
+        self.ipa = ipa
+    }
+}
+
+/// In French a vowel's name and its sound coincide, except for y: it is called
+/// "i grec" but it makes the sound of an i. That distinction is exactly what
+/// the lesson plan asks him to learn.
+enum Pronunciation {
+    static func letterName(_ character: Character) -> Utterance {
+        let letter = Character(String(character).lowercased())
+        return names[letter] ?? Utterance(String(character))
+    }
+
+    static func letterSound(_ character: Character) -> Utterance {
+        let letter = Character(String(character).lowercased())
+        return sounds[letter] ?? letterName(letter)
+    }
+
+    static func numberWord(_ value: Int) -> Utterance {
+        Utterance(words[value] ?? String(value))
+    }
+
+    static func isVowel(_ character: Character) -> Bool {
+        "aeiouy".contains(Character(String(character).lowercased()))
+    }
+
+    /// Just the sound, twice. A spoken instruction on top of it would be
+    /// repeated ten times a session, and the written instruction on screen
+    /// already says what to do.
+    static func script(for prompt: DrillPrompt) -> [Utterance] {
+        switch prompt {
+        case let .spokenLetter(character):
+            let sound = letterSound(character)
+            return [sound, sound]
+        case let .spokenNumber(value):
+            let word = numberWord(value)
+            return [word, word]
+        case .shurikens:
+            return [Utterance("Combien de shurikens vois-tu?")]
+        }
+    }
+
+    static func praise(_ index: Int) -> Utterance {
+        Utterance(cheers[abs(index) % cheers.count])
+    }
+
+    static func correction(_ choice: DrillChoice) -> [Utterance] {
+        switch choice {
+        case let .letter(character):
+            return [Utterance("C'était"), letterName(character)]
+        case let .number(value):
+            return [Utterance("C'était"), numberWord(value)]
+        }
+    }
+
+    private static let cheers = [
+        "Bravo!",
+        "Excellent!",
+        "Bien joué, ninja!",
+        "C'est exact!",
+        "Tu progresses vite!",
+        "Parfait!",
+    ]
+
+    private static let words: [Int: String] = [
+        0: "zéro", 1: "un", 2: "deux", 3: "trois", 4: "quatre",
+        5: "cinq", 6: "six", 7: "sept", 8: "huit", 9: "neuf",
+        10: "dix",
+    ]
+
+    private static let names: [Character: Utterance] = [
+        "a": Utterance("a", ipa: "a"),
+        "b": Utterance("bé", ipa: "be"),
+        "c": Utterance("cé", ipa: "se"),
+        "d": Utterance("dé", ipa: "de"),
+        "e": Utterance("e", ipa: "ə"),
+        "f": Utterance("effe", ipa: "ɛf"),
+        "g": Utterance("gé", ipa: "ʒe"),
+        "h": Utterance("hache", ipa: "aʃ"),
+        "i": Utterance("i", ipa: "i"),
+        "j": Utterance("ji", ipa: "ʒi"),
+        "k": Utterance("ka", ipa: "ka"),
+        "l": Utterance("elle", ipa: "ɛl"),
+        "m": Utterance("emme", ipa: "ɛm"),
+        "n": Utterance("enne", ipa: "ɛn"),
+        "o": Utterance("o", ipa: "o"),
+        "p": Utterance("pé", ipa: "pe"),
+        "q": Utterance("qu", ipa: "ky"),
+        "r": Utterance("erre", ipa: "ɛʁ"),
+        "s": Utterance("esse", ipa: "ɛs"),
+        "t": Utterance("té", ipa: "te"),
+        "u": Utterance("u", ipa: "y"),
+        "v": Utterance("vé", ipa: "ve"),
+        "w": Utterance("double vé", ipa: "dubləve"),
+        "x": Utterance("ixe", ipa: "iks"),
+        "y": Utterance("i grec", ipa: "iɡʁɛk"),
+        "z": Utterance("zède", ipa: "zɛd"),
+    ]
+
+    private static let sounds: [Character: Utterance] = [
+        "a": Utterance("a", ipa: "a"),
+        "e": Utterance("eu", ipa: "ə"),
+        "i": Utterance("i", ipa: "i"),
+        "o": Utterance("o", ipa: "o"),
+        "u": Utterance("u", ipa: "y"),
+        "y": Utterance("i", ipa: "i"),
+    ]
+}
