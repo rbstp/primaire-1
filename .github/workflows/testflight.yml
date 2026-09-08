@@ -94,6 +94,17 @@ jobs:
       - name: generate the project
         run: xcodegen generate
 
+      # ci.yml tests the pull request, not the revision shipped, and a manual dispatch skips it.
+      - name: test the revision being shipped
+        run: |
+          name="$(xcrun simctl list devices available -j \
+            | jq -r '.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone")) | .name' \
+            | sort -V | tail -1)"
+          [ -n "$name" ] || { echo "no iPhone simulator on this runner"; exit 1; }
+          xcodebuild test -project MissionNinja.xcodeproj -scheme MissionNinja \
+            -destination "platform=iOS Simulator,name=$name" \
+            -derivedDataPath .build/DerivedData CODE_SIGNING_ALLOWED=NO
+
       - name: import the signing certificate and profile
         id: signing
         run: |
@@ -176,10 +187,12 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           SHA: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
 
+      # always() on purpose: cancelling right after the import is exactly when the key would be left behind.
       - name: forget the signing material
-        if: ${{ !cancelled() }}
+        if: ${{ always() }}
         run: |
           rm -f "$RUNNER_TEMP/AuthKey.p8"
           if [ -f "$RUNNER_TEMP/signing.keychain-db" ]; then
             security delete-keychain "$RUNNER_TEMP/signing.keychain-db"
           fi
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles"/*.mobileprovision

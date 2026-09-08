@@ -38,6 +38,9 @@ final class SoundEffects {
     }
 
     private func attachPlayers() {
+        // The engine owns attached nodes, so they have to be detached rather
+        // than just dropped from the array, or a rebuild grows the graph.
+        for node in players { engine.detach(node) }
         players.removeAll()
         for _ in 0..<SoundEffects.voices {
             let node = AVAudioPlayerNode()

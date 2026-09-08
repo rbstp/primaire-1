@@ -97,7 +97,9 @@ struct Polyline: Equatable, Sendable {
                 index += 1
             }
         }
-        if out.last?.distance(to: last) ?? 1 > step / 4 { out.append(last) }
+        // Always keep the authored endpoint: dropping it shortens the stroke,
+        // which contradicts walking it to its last sample.
+        if out.last != last { out.append(last) }
         return Polyline(points: out)
     }
 }

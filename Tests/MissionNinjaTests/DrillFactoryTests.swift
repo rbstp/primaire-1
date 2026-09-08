@@ -57,7 +57,7 @@ private func week(
 
         var mastered = Progress()
         for _ in 0..<25 {
-            mastered.apply(.answered(character: "a", drill: .hearLetter, firstTry: true, correct: true))
+            mastered.apply(.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true))
         }
         #expect(DrillFactory.choiceWidth(for: .hearLetter, progress: mastered, poolSize: 6) == 4)
     }
@@ -124,11 +124,11 @@ private func week(
     @Test func favoursWhatHeGetsWrong() {
         var progress = Progress()
         for _ in 0..<20 {
-            progress.apply(.answered(character: "a", drill: .hearLetter, firstTry: true, correct: true))
-            progress.apply(.answered(character: "e", drill: .hearLetter, firstTry: true, correct: true))
-            progress.apply(.answered(character: "i", drill: .hearLetter, firstTry: true, correct: true))
-            progress.apply(.answered(character: "o", drill: .hearLetter, firstTry: true, correct: true))
-            progress.apply(.answered(character: "u", drill: .hearLetter, firstTry: false, correct: false))
+            progress.apply(.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true))
+            progress.apply(.answered(key: "e", drill: .hearLetter, firstTry: true, correct: true))
+            progress.apply(.answered(key: "i", drill: .hearLetter, firstTry: true, correct: true))
+            progress.apply(.answered(key: "o", drill: .hearLetter, firstTry: true, correct: true))
+            progress.apply(.answered(key: "u", drill: .hearLetter, firstTry: false, correct: false))
         }
 
         var strong = 0

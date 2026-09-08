@@ -13,6 +13,10 @@ final class TracingEngine {
     /// Points closer than this to the previous one are dropped: they add
     /// nothing to the drawn line.
     static let minimumInkSpacing = 1.5
+    /// A trace is clean when at most this share of the finger's movement went
+    /// off the line. Scribbling until each checkpoint happens to be hit still
+    /// completes the glyph, it just does not count as written well.
+    static let strayBudget = 0.35
 
     private(set) var tracer: GlyphTracer
     private(set) var strokes: [[UnitPoint2]] = [[]]
@@ -23,21 +27,35 @@ final class TracingEngine {
     private let side: Double
     private var previous: UnitPoint2?
     private var previousScreen: UnitPoint2?
-    private var attempts = 0
     private var stuckWatch: Task<Void, Never>?
+    private var movements = 0
+    private var strays = 0
     private let onStrokeDone: () -> Void
-    private let onGlyphDone: () -> Void
+    private let onGlyphDone: (Bool) -> Void
 
+    /// `attempt` counts how many times he has wiped this glyph and started
+    /// over. It is owned by the screen so it survives rebuilding the engine,
+    /// which is what makes the widened tolerance actually reachable.
     init(
         glyph: TraceGlyph,
         side: Double,
+        attempt: Int = 0,
         onStrokeDone: @escaping () -> Void = {},
-        onGlyphDone: @escaping () -> Void = {}
+        onGlyphDone: @escaping (Bool) -> Void = { _ in }
     ) {
         self.side = max(side, 1)
         tracer = GlyphTracer(glyph: glyph, canvasSide: max(side, 1))
         self.onStrokeDone = onStrokeDone
         self.onGlyphDone = onGlyphDone
+        if attempt >= TracingEngine.easedAfterAttempts {
+            tracer.ease(by: TracingEngine.easeFactor)
+        }
+    }
+
+    var isEased: Bool { tracer.isEased }
+
+    var wasClean: Bool {
+        movements == 0 || Double(strays) / Double(movements) <= TracingEngine.strayBudget
     }
 
     var strokeIndex: Int { tracer.strokeIndex }
@@ -84,6 +102,8 @@ final class TracingEngine {
         if strokes.indices.contains(strokeIndex) {
             strokes[strokeIndex].append(unit)
         }
+        movements += 1
+        if step == .strayed { strays += 1 }
         isStraying = step == .strayed
         if step == .advanced || step == .finished { watchForStuck() }
         settle(step)
@@ -104,27 +124,14 @@ final class TracingEngine {
         isStraying = false
     }
 
-    /// Only the current stroke restarts, never the whole letter.
-    func restartStroke() {
-        attempts += 1
-        if attempts >= TracingEngine.easedAfterAttempts {
-            tracer.ease(by: TracingEngine.easeFactor)
-        }
-        tracer.restartStroke()
-        if strokes.indices.contains(strokeIndex) { strokes[strokeIndex] = [] }
-        showsHint = true
-        isStraying = false
-    }
-
     private func settle(_ step: TraceValidator.Step) {
         guard step == .finished else { return }
         if strokes.count <= tracer.strokeIndex { strokes.append([]) }
         if tracer.isComplete {
             isComplete = true
             stuckWatch?.cancel()
-            onGlyphDone()
+            onGlyphDone(wasClean)
         } else {
-            attempts = 0
             onStrokeDone()
         }
     }

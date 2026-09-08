@@ -31,7 +31,7 @@ enum DrillFactory {
         var drills: [Drill] = []
         var previous: Character?
         for index in 0..<drillsPerSession {
-            let target = pick(from: pool, avoiding: previous, progress: progress, random: &random)
+            let target = pick(from: pool, avoiding: previous, key: String.init, progress: progress, random: &random)
             previous = target
             let choices = choices(target: target, pool: pool, width: width, random: &random)
                 .map(DrillChoice.letter)
@@ -46,16 +46,19 @@ enum DrillFactory {
         let pool = week.numbers.digits
         guard !pool.isEmpty else { return [] }
         let width = choiceWidth(for: .hearNumber, progress: progress, poolSize: pool.count)
+        // Counting is its own skill, so it widens on its own history rather
+        // than on how well he recognises a spoken number.
+        let countingWidth = choiceWidth(for: .countObjects, progress: progress, poolSize: pool.count)
         var drills: [Drill] = []
         var previous: Int?
         for index in 0..<drillsPerSession {
             let counting = week.numbers.counting && index.isMultiple(of: 2)
-            if counting, let drill = countingDrill(id: index, pool: pool, width: width, avoiding: previous, progress: progress, random: &random) {
+            if counting, let drill = countingDrill(id: index, pool: pool, width: countingWidth, avoiding: previous, progress: progress, random: &random) {
                 previous = countedValue(of: drill)
                 drills.append(drill)
                 continue
             }
-            let target = pick(from: pool, avoiding: previous, progress: progress, random: &random)
+            let target = pick(from: pool, avoiding: previous, key: String.init, progress: progress, random: &random)
             previous = target
             let choices = choices(target: target, pool: pool, width: width, random: &random)
                 .map(DrillChoice.number)
@@ -77,7 +80,7 @@ enum DrillFactory {
     ) -> Drill? {
         let countable = pool.filter { (1...9).contains($0) }
         guard !countable.isEmpty else { return nil }
-        let target = pick(from: countable, avoiding: previous, progress: progress, random: &random)
+        let target = pick(from: countable, avoiding: previous, key: String.init, progress: progress, random: &random)
         let neighbours = countable
             .filter { $0 != target }
             .sorted { abs($0 - target) < abs($1 - target) }
@@ -119,15 +122,18 @@ enum DrillFactory {
     }
 
     /// Weighted towards what he gets wrong, with a floor so everything keeps
-    /// coming back.
+    /// coming back. The stats key is passed in rather than derived from a
+    /// description, which silently stopped weighting anything longer than one
+    /// character.
     private static func pick<T: Hashable>(
         from pool: [T],
         avoiding previous: T?,
+        key: (T) -> String,
         progress: Progress,
         random: inout SeededRandom
-    ) -> T where T: CustomStringConvertible {
+    ) -> T {
         let candidates = pool.count > 1 ? pool.filter { $0 != previous } : pool
-        let weights = candidates.map { weight(of: $0, progress: progress) }
+        let weights = candidates.map { 0.25 + progress.record(for: key($0)).weakness }
         let total = weights.reduce(0, +)
         guard total > 0 else { return candidates[0] }
         var cut = random.nextDouble(in: 0...total)
@@ -136,12 +142,6 @@ enum DrillFactory {
             if cut <= 0 { return candidate }
         }
         return candidates[candidates.count - 1]
-    }
-
-    private static func weight<T: CustomStringConvertible>(of value: T, progress: Progress) -> Double {
-        let text = String(describing: value)
-        guard let character = text.count == 1 ? text.first : nil else { return 1 }
-        return 0.25 + progress.record(for: character).weakness
     }
 
     private static func choices<T: Hashable>(

@@ -3,6 +3,9 @@ import Foundation
 protocol ProgressPersisting: Sendable {
     func load() -> Progress
     func save(_ progress: Progress)
+    /// True when a previous document could not be decoded and was set aside,
+    /// so the parent screen can say why the stars went back to zero.
+    var hasSalvagedDocument: Bool { get }
 }
 
 /// UserDefaults is documented as thread safe but the SDK does not annotate it
@@ -41,6 +44,7 @@ final class InMemoryProgress: ProgressPersisting, @unchecked Sendable {
     private let lock = NSLock()
     private var stored: Progress
     private(set) var saveCount = 0
+    let hasSalvagedDocument = false
 
     init(_ progress: Progress = Progress()) {
         stored = progress

@@ -86,10 +86,11 @@ struct AlphabetView: View {
         }
     }
 
+    /// The letter is never written here: he cannot read, but he can match one
+    /// glyph against the grid, which is the whole exercise.
     private var instruction: String {
         guard let run else { return "" }
-        guard let expected = run.expected else { return "Tu as fait tout l'alphabet. Bravo!" }
-        return "Écoute, puis trouve le « \(expected) »."
+        return run.expected == nil ? "Tu as fait tout l'alphabet. Bravo!" : "Écoute, puis trouve la lettre."
     }
 
     /// The letter to look for is spoken, never outlined: an outline would hand
@@ -113,7 +114,7 @@ struct AlphabetView: View {
         if current.isComplete {
             effects.play(.belt)
             speaker.say(Pronunciation.praise(0))
-            store.apply(.answered(character: letter, drill: .alphabetOrder, firstTry: true, correct: true))
+            store.apply(.answered(key: String(letter), drill: .alphabetOrder, firstTry: true, correct: true))
         } else {
             sayExpected()
         }

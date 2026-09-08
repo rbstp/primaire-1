@@ -37,12 +37,12 @@ enum DrillChoice: Equatable, Hashable, Sendable {
         }
     }
 
-    /// The character these stats are filed under. Digits 0 to 9 are one
-    /// character each, so a single key covers both cases.
-    var statKey: Character {
+    /// What these stats are filed under. A string, not a character: a week
+    /// reaching 10 has no single character form for it, and forcing one traps.
+    var statKey: String {
         switch self {
-        case let .letter(character): character
-        case let .number(value): Character(String(value))
+        case let .letter(character): String(character)
+        case let .number(value): String(value)
         }
     }
 }

@@ -122,10 +122,12 @@ struct TraceModeView: View {
         .frame(maxHeight: axis == .vertical ? 160 : 60)
     }
 
-    private func finish() {
+    /// The star lands either way: at six, praise is what brings him back. The
+    /// parent screen is where a scribbled trace shows up.
+    private func finish(clean: Bool) {
         effects.play(.star)
         speaker.say([Pronunciation.praise(index), Pronunciation.letterName(character)])
-        store.apply(.tracedGlyph(character))
+        store.apply(.tracedGlyph(character, clean: clean))
     }
 
     private func advance() {

@@ -20,31 +20,18 @@ struct CharacterRecord: Codable, Equatable, Sendable {
     var weakness: Double {
         attempts == 0 ? 1 : 1 - Double(firstTries) / Double(attempts)
     }
-
-    static func merged(_ lhs: Self, _ rhs: Self) -> Self {
-        CharacterRecord(
-            attempts: max(lhs.attempts, rhs.attempts),
-            successes: max(lhs.successes, rhs.successes),
-            firstTries: max(lhs.firstTries, rhs.firstTries)
-        )
-    }
 }
 
 struct DrillRecord: Codable, Equatable, Sendable {
     var asked = 0
     var solvedFirstTry = 0
-
-    static func merged(_ lhs: Self, _ rhs: Self) -> Self {
-        DrillRecord(
-            asked: max(lhs.asked, rhs.asked),
-            solvedFirstTry: max(lhs.solvedFirstTry, rhs.solvedFirstTry)
-        )
-    }
 }
 
 enum ProgressEvent: Equatable, Sendable {
-    case answered(character: Character, drill: DrillKind, firstTry: Bool, correct: Bool)
-    case tracedGlyph(Character)
+    /// The key is a string, not a character: a two digit number has no single
+    /// character form, and forcing one traps at runtime.
+    case answered(key: String, drill: DrillKind, firstTry: Bool, correct: Bool)
+    case tracedGlyph(Character, clean: Bool)
     case tickedTask(TaskTick)
     case untickedTask(TaskTick)
     case practised(DayKey)
@@ -58,7 +45,14 @@ struct Progress: Codable, Equatable, Sendable {
 
     var schema = Progress.currentSchema
     var stars = 0
+    /// Listening and reading, keyed by the character or number asked.
     var characters: [String: CharacterRecord] = [:]
+    /// Handwriting, kept apart: writing an a well says nothing about hearing
+    /// it, and mixing the two made a well traced letter stop being asked.
+    var traced: [String: Int] = [:]
+    /// Of those, the ones where the finger stayed on the line. Shown to the
+    /// parent rather than used against him.
+    var tracedClean: [String: Int] = [:]
     var drills: [String: DrillRecord] = [:]
     var tickedTasks: Set<TaskTick> = []
     var practiceDays: Set<DayKey> = []
@@ -73,6 +67,8 @@ struct Progress: Codable, Equatable, Sendable {
         schema = try box.decodeIfPresent(Int.self, forKey: .schema) ?? Progress.currentSchema
         stars = try box.decodeIfPresent(Int.self, forKey: .stars) ?? 0
         characters = try box.decodeIfPresent([String: CharacterRecord].self, forKey: .characters) ?? [:]
+        traced = try box.decodeIfPresent([String: Int].self, forKey: .traced) ?? [:]
+        tracedClean = try box.decodeIfPresent([String: Int].self, forKey: .tracedClean) ?? [:]
         drills = try box.decodeIfPresent([String: DrillRecord].self, forKey: .drills) ?? [:]
         tickedTasks = try box.decodeIfPresent(Set<TaskTick>.self, forKey: .tickedTasks) ?? []
         practiceDays = try box.decodeIfPresent(Set<DayKey>.self, forKey: .practiceDays) ?? []
@@ -82,24 +78,36 @@ struct Progress: Codable, Equatable, Sendable {
     var belt: Belt { Belt.earned(stars: stars) }
     var beltAdvance: Double { Belt.advance(stars: stars) }
 
+    func record(for key: String) -> CharacterRecord {
+        characters[key] ?? CharacterRecord()
+    }
+
     func record(for character: Character) -> CharacterRecord {
-        characters[String(character)] ?? CharacterRecord()
+        record(for: String(character))
     }
 
     func record(for drill: DrillKind) -> DrillRecord {
         drills[drill.rawValue] ?? DrillRecord()
     }
 
+    func timesTraced(_ character: Character) -> Int {
+        traced[String(character)] ?? 0
+    }
+
+    func timesTracedCleanly(_ character: Character) -> Int {
+        tracedClean[String(character)] ?? 0
+    }
+
     func isTicked(_ tick: TaskTick) -> Bool { tickedTasks.contains(tick) }
 
     mutating func apply(_ event: ProgressEvent) {
         switch event {
-        case let .answered(character, drill, firstTry, correct):
-            var entry = record(for: character)
+        case let .answered(key, drill, firstTry, correct):
+            var entry = record(for: key)
             entry.attempts += 1
             if correct { entry.successes += 1 }
             if correct && firstTry { entry.firstTries += 1 }
-            characters[String(character)] = entry
+            characters[key] = entry
 
             var kind = record(for: drill)
             kind.asked += 1
@@ -109,12 +117,13 @@ struct Progress: Codable, Equatable, Sendable {
             }
             drills[drill.rawValue] = kind
 
-        case let .tracedGlyph(character):
-            var entry = record(for: character)
-            entry.attempts += 1
-            entry.successes += 1
-            entry.firstTries += 1
-            characters[String(character)] = entry
+        case let .tracedGlyph(character, clean):
+            traced[String(character), default: 0] += 1
+            if clean { tracedClean[String(character), default: 0] += 1 }
+            var kind = record(for: .trace)
+            kind.asked += 1
+            kind.solvedFirstTry += 1
+            drills[DrillKind.trace.rawValue] = kind
             stars += 1
 
         case let .tickedTask(tick):
@@ -147,30 +156,6 @@ struct Progress: Codable, Equatable, Sendable {
             cursor = earlier
         }
         return length
-    }
-
-    /// The characters to ask most, weakest first.
-    func weakest(among candidates: [Character], limit: Int) -> [Character] {
-        candidates
-            .map { (character: $0, weakness: record(for: $0).weakness) }
-            .sorted { ($0.weakness, String($0.character)) > ($1.weakness, String($1.character)) }
-            .prefix(limit)
-            .map(\.character)
-    }
-
-    /// Union on the sets, max on the counters: merging two devices can never
-    /// take a star away.
-    static func merged(_ lhs: Progress, _ rhs: Progress) -> Progress {
-        var out = Progress()
-        out.schema = max(lhs.schema, rhs.schema)
-        out.stars = max(lhs.stars, rhs.stars)
-        out.characters = lhs.characters.merging(rhs.characters, uniquingKeysWith: CharacterRecord.merged)
-        out.drills = lhs.drills.merging(rhs.drills, uniquingKeysWith: DrillRecord.merged)
-        out.tickedTasks = lhs.tickedTasks.union(rhs.tickedTasks)
-        out.practiceDays = lhs.practiceDays.union(rhs.practiceDays)
-        out.paidTicks = lhs.paidTicks.union(rhs.paidTicks)
-        out.trimHistory()
-        return out
     }
 
     private mutating func trimHistory() {

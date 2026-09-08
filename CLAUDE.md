@@ -53,7 +53,8 @@ Elles viennent de l'usage, pas d'un goût abstrait. Les enfreindre casse l'app p
 - **Il ne lit pas encore.** Toute consigne est parlée. Un texte à l'écran sert au parent qui accompagne, jamais à lui.
 - **Ne jamais mettre la bonne réponse en évidence avant qu'il ait répondu.** Un contour sur la lettre attendue se lit avant le texte, même sans savoir lire, et vide l'exercice de son sens.
 - **Consignes courtes.** Pour une voyelle ou un chiffre, on dit le son deux fois, sans phrase autour: une consigne parlée revient dix fois par séance.
-- **Aucun échec.** Une mauvaise réponse montre la bonne, la voix la redit, et l'épreuve revient plus tard. Un tracé ne rate pas: le curseur s'arrête, l'aide arrive après deux secondes et demie, la tolérance s'élargit après deux tentatives.
+- **Aucun échec.** Une mauvaise réponse montre la bonne, la voix la redit, et l'épreuve revient plus tard. Un tracé ne rate pas: le curseur s'arrête, l'aide arrive après deux secondes et demie, la tolérance s'élargit après deux « Effacer ».
+- **Le tracé valide une suite de points de passage, pas une continuité.** Un gribouillage assez patient finit par valider un glyphe. C'est un compromis assumé: à 6 ans, ne jamais bloquer vaut plus que rendre la triche impossible. La proportion de mouvement hors piste est mesurée et l'écran parent montre « propres sur total », ce qui informe sans punir.
 - **Bleu et noir.** Ce sont ses couleurs. L'or est réservé aux étoiles, le vert à une bonne réponse, le rouge seulement à une erreur, et discrètement.
 - **Les mélanges changent à chaque ouverture d'un écran**, avec `SeededRandom.fresh()`.
 - **Français canadien, bon langage.** Pas d'anglicisme, et la terminologie de l'école: un chiffre va de 0 à 9, un nombre s'écrit avec des chiffres.

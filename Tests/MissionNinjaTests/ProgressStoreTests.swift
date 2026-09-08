@@ -12,7 +12,7 @@ private func scratchDefaults() -> UserDefaults {
         let defaults = scratchDefaults()
         let store = UserDefaultsProgress(defaults: defaults)
         var progress = Progress()
-        progress.apply(.answered(character: "a", drill: .hearLetter, firstTry: true, correct: true))
+        progress.apply(.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true))
         store.save(progress)
 
         #expect(UserDefaultsProgress(defaults: defaults).load() == progress)
@@ -39,7 +39,7 @@ private func scratchDefaults() -> UserDefaults {
 @Suite struct ProgressStoreTests {
     @Test func loadsWhatWasStored() {
         var stored = Progress()
-        stored.apply(.tracedGlyph("7"))
+        stored.apply(.tracedGlyph("7", clean: true))
         let store = ProgressStore(persistence: InMemoryProgress(stored))
         #expect(store.stars == 1)
     }
@@ -47,7 +47,7 @@ private func scratchDefaults() -> UserDefaults {
     @Test func flushWritesImmediately() {
         let persistence = InMemoryProgress()
         let store = ProgressStore(persistence: persistence)
-        store.apply(.answered(character: "a", drill: .hearLetter, firstTry: true, correct: true))
+        store.apply(.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true))
         store.flush()
         #expect(persistence.load().stars == 1)
     }
@@ -56,8 +56,8 @@ private func scratchDefaults() -> UserDefaults {
         let persistence = InMemoryProgress()
         let store = ProgressStore(persistence: persistence)
         store.apply([
-            .answered(character: "a", drill: .hearLetter, firstTry: true, correct: true),
-            .answered(character: "e", drill: .hearLetter, firstTry: true, correct: true),
+            .answered(key: "a", drill: .hearLetter, firstTry: true, correct: true),
+            .answered(key: "e", drill: .hearLetter, firstTry: true, correct: true),
         ])
         #expect(store.stars == 2)
     }
@@ -87,7 +87,7 @@ private func scratchDefaults() -> UserDefaults {
     @Test func resetClearsEverythingAndWritesIt() {
         let persistence = InMemoryProgress()
         let store = ProgressStore(persistence: persistence)
-        store.apply(.tracedGlyph("3"))
+        store.apply(.tracedGlyph("3", clean: true))
         store.reset()
         #expect(store.stars == 0)
         #expect(persistence.load() == Progress())

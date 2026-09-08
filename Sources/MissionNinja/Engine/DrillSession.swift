@@ -52,7 +52,7 @@ struct DrillSession: Equatable, Sendable {
             correct: correct,
             firstTry: firstTry,
             expected: drill.answer,
-            events: [.answered(character: drill.answer.statKey, drill: drill.kind, firstTry: firstTry, correct: correct)]
+            events: [.answered(key: drill.answer.statKey, drill: drill.kind, firstTry: firstTry, correct: correct)]
         )
     }
 }

@@ -19,6 +19,7 @@ final class ProgressStore {
     }
 
     var stars: Int { progress.stars }
+    var lostAPreviousDocument: Bool { persistence.hasSalvagedDocument }
     var belt: Belt { progress.belt }
     var beltAdvance: Double { progress.beltAdvance }
 

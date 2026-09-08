@@ -65,7 +65,7 @@ private func drill(_ id: Int, answer: Character = "a", decoy: Character = "e") -
     @Test func reportsOneEventPerAnswer() {
         var session = DrillSession(drills: [drill(0)])
         let answer = session.answer(.letter("a"))
-        #expect(answer?.events == [.answered(character: "a", drill: .hearLetter, firstTry: true, correct: true)])
+        #expect(answer?.events == [.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true)])
     }
 
     @Test func doesNothingOnceFinished() {

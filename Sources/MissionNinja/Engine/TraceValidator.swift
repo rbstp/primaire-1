@@ -100,7 +100,9 @@ struct TraceValidator: Equatable, Sendable {
 
     mutating func began(at point: UnitPoint2) -> Step {
         guard !isComplete else { return .ignored }
-        if isDot, point.distance(to: startPoint) <= tolerance.stray {
+        // capture, not stray: a stray radius is wide enough to reach the top of
+        // the stem right below, which would complete the dot without touching it.
+        if isDot, point.distance(to: startPoint) <= tolerance.capture {
             cursor = stroke.points.count - 1
             isComplete = true
             return .finished
@@ -212,15 +214,14 @@ struct GlyphTracer: Equatable, Sendable {
         validator.lifted()
     }
 
-    mutating func restartStroke() {
-        validator.restart()
-    }
+    private(set) var isEased = false
 
     /// Widen the target after a couple of stuck attempts, for this glyph and
     /// every stroke still to come.
     mutating func ease(by factor: Double) {
         tolerance = tolerance.eased(by: factor)
         validator.tolerance = tolerance
+        isEased = true
     }
 
     private mutating func finishStroke() {

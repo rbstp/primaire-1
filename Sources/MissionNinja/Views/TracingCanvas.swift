@@ -10,7 +10,7 @@ struct TracingCanvas: View {
     let glyph: TraceGlyph
     let attempt: Int
     let onStrokeDone: () -> Void
-    let onGlyphDone: () -> Void
+    let onGlyphDone: (Bool) -> Void
 
     var body: some View {
         GeometryReader { frame in
@@ -34,7 +34,7 @@ private struct Surface: View {
     let side: Double
     let attempt: Int
     let onStrokeDone: () -> Void
-    let onGlyphDone: () -> Void
+    let onGlyphDone: (Bool) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var engine: TracingEngine?
@@ -108,6 +108,7 @@ private struct Surface: View {
         engine = TracingEngine(
             glyph: glyph,
             side: side,
+            attempt: attempt,
             onStrokeDone: onStrokeDone,
             onGlyphDone: onGlyphDone
         )

@@ -24,9 +24,14 @@ struct ParentView: View {
                     row("Ceinture", store.belt.name.capitalizedFirst)
                     row("Étoiles", "\(store.stars)")
                     row("Jours consécutifs", "\(store.streak())")
+                    if store.lostAPreviousDocument {
+                        Text("Une progression enregistrée n'a pas pu être relue et a été mise de côté. Le compte d'étoiles est donc reparti de zéro.")
+                            .font(Typography.caption)
+                            .foregroundStyle(.ninjaGold)
+                    }
                 }
 
-                Section("Par caractère") {
+                Section("Par caractère, à l'écoute") {
                     ForEach(tracked, id: \.self) { character in
                         let record = store.progress.record(for: character)
                         HStack {
@@ -45,6 +50,15 @@ struct ParentView: View {
                                     .font(Typography.caption)
                                     .foregroundStyle(record.successRate >= 0.8 ? Color.ninjaBamboo : .ninjaGold)
                             }
+                        }
+                    }
+                }
+
+                Section("Tracés") {
+                    ForEach(tracked, id: \.self) { character in
+                        let times = store.progress.timesTraced(character)
+                        if times > 0 {
+                            row(String(character), "\(store.progress.timesTracedCleanly(character)) propres sur \(times)")
                         }
                     }
                 }
