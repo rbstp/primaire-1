@@ -1,0 +1,95 @@
+import SwiftUI
+
+/// "Je reconnais les voyelles, leur nom et leur bruit." Touch a vowel and it
+/// says its name, then the sound it makes. No score, no pressure: this is the
+/// part he explores.
+struct LetterWallView: View {
+    let week: Week
+
+    @Environment(Speaker.self) private var speaker
+    @Environment(SoundEffects.self) private var effects
+
+    @State private var spoken: Character?
+
+    private var vowels: [Character] { week.letters.vowels.characters }
+
+    var body: some View {
+        ZStack {
+            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("Touche une voyelle pour entendre son nom, puis son bruit.")
+                        .font(Typography.body)
+                        .foregroundStyle(Palette.cream.opacity(0.75).color)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+
+                    LazyVGrid(columns: [GridItem(spacing: 14), GridItem(spacing: 14), GridItem(spacing: 14)], spacing: 14) {
+                        ForEach(vowels, id: \.self) { vowel in
+                            Button { say(vowel) } label: {
+                                VowelCard(letter: vowel, isSpeaking: spoken == vowel)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                    if let spoken {
+                        NinjaCard {
+                            VStack(spacing: 8) {
+                                Text("La lettre \(Pronunciation.letterName(spoken).text)")
+                                    .font(Typography.sectionTitle)
+                                    .foregroundStyle(.ninjaCream)
+                                Text("fait le bruit « \(Pronunciation.letterSound(spoken).text) »")
+                                    .font(Typography.body)
+                                    .foregroundStyle(.ninjaAzure)
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .padding(.horizontal, 20)
+                    }
+                }
+                .padding(.vertical, 20)
+                .frame(maxWidth: 620)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .navigationTitle("Les voyelles")
+        .navigationBarTitleDisplayMode(.inline)
+        .onDisappear { speaker.stop() }
+    }
+
+    private func say(_ vowel: Character) {
+        spoken = vowel
+        effects.play(.tap)
+        speaker.say([
+            Pronunciation.letterName(vowel),
+            Utterance("fait"),
+            Pronunciation.letterSound(vowel),
+        ])
+    }
+}
+
+private struct VowelCard: View {
+    let letter: Character
+    let isSpeaking: Bool
+
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(String(letter))
+                .font(Typography.glyph(52))
+            Text(String(letter).uppercased())
+                .font(Typography.glyph(26))
+                .foregroundStyle(Palette.cream.opacity(0.55).color)
+        }
+        .foregroundStyle(.ninjaCream)
+        .frame(maxWidth: .infinity, minHeight: 112)
+        .background(isSpeaking ? Palette.bladeDeep.color : Palette.slate.color, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(isSpeaking ? Color.ninjaAzure : Palette.blade.opacity(0.35).color, lineWidth: 2)
+        )
+        .animation(.easeOut(duration: 0.15), value: isSpeaking)
+        .accessibilityLabel("Lettre \(letter)")
+    }
+}

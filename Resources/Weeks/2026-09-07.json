@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "2026-09-07",
+  "title": "Semaine du 7 au 11 septembre 2026",
+  "grade": "1re année",
+  "teacher": "Mme Catherine",
+  "days": [
+    { "name": "lundi", "atSchool": false, "note": "Congé, Fête du travail" },
+    { "name": "mardi", "atSchool": true, "note": null },
+    { "name": "mercredi", "atSchool": true, "note": "Réunion de parents à 18 h" },
+    { "name": "jeudi", "atSchool": true, "note": null },
+    { "name": "vendredi", "atSchool": true, "note": "Pique-nique familial" }
+  ],
+  "letters": {
+    "vowels": ["a", "e", "i", "o", "u", "y"],
+    "alphabet": true
+  },
+  "numbers": {
+    "from": 0,
+    "to": 9,
+    "counting": true
+  },
+  "tracing": ["a", "e", "i", "o", "u", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+  "tasks": [
+    { "id": "chanson-alphabet", "title": "Je chante la chanson de l'alphabet", "place": "Duo-tang rouge, p. 1" },
+    { "id": "deux-lignes", "title": "Je lis deux lignes", "place": "Duo-tang rouge, p. 2" },
+    { "id": "voyelles-pochette", "title": "Je reconnais les voyelles, leur nom et leur bruit", "place": "Pochette de lecture" },
+    { "id": "prenoms-amis", "title": "Je reconnais le prénom des amis de la classe", "place": "Cartable" },
+    { "id": "chiffres-pochette", "title": "Je reconnais les chiffres de 0 à 9", "place": "Pochette de lecture" },
+    { "id": "lire-nombres", "title": "Je lis les nombres", "place": "Cartable, p. 1" }
+  ]
+}
