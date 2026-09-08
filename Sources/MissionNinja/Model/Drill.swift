@@ -10,8 +10,8 @@ enum DrillKind: String, CaseIterable, Codable, Sendable {
     var title: String {
         switch self {
         case .hearLetter: "Trouve la lettre"
-        case .hearNumber: "Trouve le chiffre"
-        case .countObjects: "Compte les shurikens"
+        case .hearNumber: "Trouve le chiffre ou le nombre"
+        case .countObjects: "Compte les briques"
         case .alphabetOrder: "L'alphabet dans l'ordre"
         case .trace: "Le tracé"
         }
@@ -23,7 +23,7 @@ enum DrillKind: String, CaseIterable, Codable, Sendable {
 enum DrillPrompt: Equatable, Sendable {
     case spokenLetter(Character)
     case spokenNumber(Int)
-    case shurikens(Int)
+    case bricks(Int)
 }
 
 enum DrillChoice: Equatable, Hashable, Sendable {

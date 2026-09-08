@@ -12,7 +12,7 @@ struct DojoView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 18) {
                     BeltBadge(
@@ -28,33 +28,40 @@ struct DojoView: View {
                         .font(Typography.caption)
                         .foregroundStyle(Palette.cream.opacity(0.65).color)
 
-                    LazyVGrid(columns: [GridItem(spacing: 14), GridItem(spacing: 14)], spacing: 14) {
-                        tile("Mode Lettres", "textformat.abc", .letters)
-                        tile("Mode Chiffres", "number", .numbers)
+                    LazyVGrid(columns: [GridItem(spacing: 14), GridItem(spacing: 14)], spacing: 18) {
+                        tile("Mode Lettres", "textformat.abc", .blue, .letters)
+                        tile("Mode Chiffres", "number", .black, .numbers)
                         NavigationLink {
                             LetterWallView(week: week)
                         } label: {
-                            DojoTile(title: "Les voyelles", symbol: "waveform")
+                            DojoTile(title: "Les voyelles", symbol: "waveform", tone: .blue)
                         }
+                        .buttonStyle(DojoTileStyle())
                         if week.letters.alphabet {
                             NavigationLink {
                                 AlphabetView(week: week)
                             } label: {
-                                DojoTile(title: "L'alphabet", symbol: "music.note.list")
+                                DojoTile(title: "L'alphabet", symbol: nil, tone: .black) {
+                                    DragonBuild(done: 1, total: 1, animated: false)
+                                        .frame(height: 64)
+                                }
                             }
+                            .buttonStyle(DojoTileStyle())
                         }
                         if !week.tracing.isEmpty {
                             NavigationLink {
                                 TraceModeView(week: week)
                             } label: {
-                                DojoTile(title: "Le tracé", symbol: "hand.draw")
+                                DojoTile(title: "Le tracé", symbol: "hand.draw", tone: .blue)
                             }
+                            .buttonStyle(DojoTileStyle())
                         }
                         NavigationLink {
                             MissionLogView(week: week)
                         } label: {
-                            DojoTile(title: "Mon carnet", symbol: "checklist")
+                            DojoTile(title: "Mon carnet", symbol: "checklist", tone: .black)
                         }
+                        .buttonStyle(DojoTileStyle())
                     }
 
                     Button("Changer de semaine", action: changeWeek)
@@ -73,35 +80,68 @@ struct DojoView: View {
         }
     }
 
-    private func tile(_ title: String, _ symbol: String, _ mode: DrillFactory.Mode) -> some View {
+    private func tile(_ title: String, _ symbol: String, _ tone: BrickTone, _ mode: DrillFactory.Mode) -> some View {
         NavigationLink {
             DrillView(week: week, mode: $drillMode)
         } label: {
-            DojoTile(title: title, symbol: symbol)
+            DojoTile(title: title, symbol: symbol, tone: tone)
         }
+        .buttonStyle(DojoTileStyle())
         .simultaneousGesture(TapGesture().onEnded { drillMode = mode })
     }
 }
 
-private struct DojoTile: View {
+/// A brick per activity. The press sinks the whole tile, picture included.
+private struct DojoTileStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .environment(\.dojoTilePressed, configuration.isPressed)
+    }
+}
+
+private struct DojoTile<Picture: View>: View {
     let title: String
-    let symbol: String
+    let symbol: String?
+    var tone: BrickTone = .blue
+    @ViewBuilder var picture: Picture
+
+    @Environment(\.dojoTilePressed) private var pressed
+
+    init(title: String, symbol: String?, tone: BrickTone) where Picture == EmptyView {
+        self.title = title
+        self.symbol = symbol
+        self.tone = tone
+        picture = EmptyView()
+    }
+
+    init(title: String, symbol: String?, tone: BrickTone, @ViewBuilder picture: () -> Picture) {
+        self.title = title
+        self.symbol = symbol
+        self.tone = tone
+        self.picture = picture()
+    }
 
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 34, weight: .semibold))
-                .foregroundStyle(.ninjaAzure)
-            Text(title)
-                .font(Typography.body)
-                .foregroundStyle(.ninjaCream)
-                .multilineTextAlignment(.center)
+        Brick(tone: tone, studs: 3, depth: 10, cornerRadius: 12, pressed: pressed) {
+            VStack(spacing: 10) {
+                if let symbol {
+                    Image(systemName: symbol)
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundStyle(tone == .blue ? Color.ninjaCream : Color.ninjaAzure)
+                        .frame(height: 64)
+                } else {
+                    picture
+                }
+                Text(title)
+                    .font(Typography.body)
+                    .foregroundStyle(.ninjaCream)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, minHeight: 134)
         }
-        .frame(maxWidth: .infinity, minHeight: 128)
-        .background(Palette.slate.color, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Palette.blade.opacity(0.35).color, lineWidth: 2)
-        )
     }
+}
+
+private extension EnvironmentValues {
+    @Entry var dojoTilePressed = false
 }

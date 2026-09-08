@@ -26,7 +26,7 @@ struct TraceModeView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             if glyphs.isEmpty {
                 Text("Aucun tracé pour cette semaine.")
                     .font(Typography.body)
@@ -98,14 +98,12 @@ struct TraceModeView: View {
                     index = position
                     attempt += 1
                 } label: {
-                    Text(String(glyphs[position]))
-                        .font(Typography.glyph(24))
-                        .foregroundStyle(position == index ? .ninjaInk : .ninjaCream)
-                        .frame(width: 46, height: 46)
-                        .background(
-                            position == index ? Color.ninjaAzure : Palette.slate.color,
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        )
+                    Brick(tone: position == index ? .azure : .black, studs: 2, depth: 5, cornerRadius: 7, pressed: position == index) {
+                        Text(String(glyphs[position]))
+                            .font(Typography.glyph(24))
+                            .foregroundStyle(position == index ? .ninjaInk : .ninjaCream)
+                            .frame(width: 44, height: 40)
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("Tracer \(glyphs[position])")
@@ -119,7 +117,7 @@ struct TraceModeView: View {
                     .padding(.horizontal, 20)
             }
         }
-        .frame(maxHeight: axis == .vertical ? 160 : 60)
+        .frame(maxHeight: axis == .vertical ? 170 : 64)
     }
 
     /// The star lands either way: at six, praise is what brings him back. The

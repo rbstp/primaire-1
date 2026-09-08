@@ -12,7 +12,7 @@ struct WeekPickerView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 22) {
                     header
@@ -36,7 +36,7 @@ struct WeekPickerView: View {
 
     private var header: some View {
         VStack(spacing: 10) {
-            NinjaMascot(mood: .calm, size: 132)
+            NinjaMascot(mood: .calm, size: 120, fullBody: true)
             Text("Mission Ninja")
                 .font(Typography.screenTitle)
                 .foregroundStyle(.ninjaCream)
@@ -60,7 +60,7 @@ struct WeekPickerView: View {
                     .font(Typography.caption)
                     .foregroundStyle(Palette.cream.opacity(0.7).color)
                 Button("Commencer l'entraînement") { choose(week) }
-                    .buttonStyle(NinjaButtonStyle(prominent: true))
+                    .buttonStyle(BrickButtonStyle(tone: .azure, minHeight: 56))
             }
         }
     }
@@ -81,10 +81,9 @@ struct WeekPickerView: View {
                         Image(systemName: "chevron.right")
                             .foregroundStyle(.ninjaBlade)
                     }
-                    .padding(16)
-                    .background(Palette.slate.color, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .padding(.horizontal, 16)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(BrickButtonStyle(tone: .night, studs: 6, minHeight: 54, cornerRadius: 10))
             }
         }
     }

@@ -10,6 +10,8 @@ enum Sfx: CaseIterable, Sendable {
     case belt
     case stroke
     case tap
+    case snap
+    case roar
 
     var recipe: ToneRecipe {
         switch self {
@@ -43,6 +45,16 @@ enum Sfx: CaseIterable, Sendable {
         case .tap:
             ToneRecipe(wave: .square(duty: 0.5), segments: [
                 .note(Note.c5, 0.03, gain: 0.12),
+            ])
+        case .snap:
+            // A brick clicking onto a plate: a dry tick with almost no tail.
+            ToneRecipe(wave: .noise, segments: [
+                .sweep(3200, 900, 0.035, gain: 0.26, release: 0.02),
+            ])
+        case .roar:
+            ToneRecipe(wave: .noise, segments: [
+                .sweep(90, 260, 0.18, gain: 0.30, release: 0.02),
+                .sweep(260, 70, 0.42, gain: 0.30, release: 0.25),
             ])
         }
     }

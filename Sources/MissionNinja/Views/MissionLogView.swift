@@ -11,7 +11,7 @@ struct MissionLogView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 16) {
                     ForEach(week.days) { day in
@@ -99,9 +99,23 @@ private struct TaskRow: View {
     var body: some View {
         Button(action: toggle) {
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: isDone ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 26))
-                    .foregroundStyle(isDone ? Color.ninjaBamboo : Palette.blade.opacity(0.6).color)
+                ZStack {
+                    Circle()
+                        .stroke(Palette.blade.opacity(0.6).color, lineWidth: 2)
+                    if isDone {
+                        Circle()
+                            .fill(Palette.bamboo.mixed(with: Palette.ink, amount: 0.35).color)
+                        Circle()
+                            .fill(Palette.bamboo.color)
+                            .offset(y: -2)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundStyle(.ninjaInk)
+                            .offset(y: -2)
+                    }
+                }
+                .frame(width: 28, height: 28)
+                .animation(.spring(duration: 0.25, bounce: 0.4), value: isDone)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(task.title)
                         .font(Typography.body)

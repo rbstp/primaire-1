@@ -14,6 +14,7 @@ enum DebugScreen: String {
     case trace
     case log
     case glyphs
+    case scenes
 
     static var requested: DebugScreen? {
         guard let index = ProcessInfo.processInfo.arguments.firstIndex(of: "-screen"),
@@ -29,13 +30,34 @@ private extension Array {
     }
 }
 
+/// The three end-of-run scenes, side by side, so their timing can be watched
+/// without finishing a run.
+struct SceneProofView: View {
+    var body: some View {
+        ZStack {
+            Baseplate().ignoresSafeArea()
+            ScrollView {
+                VStack(spacing: 24) {
+                    ForEach(Celebration.allCases, id: \.self) { kind in
+                        CelebrationView(kind: kind)
+                            .frame(height: 200)
+                    }
+                }
+                .padding(20)
+            }
+        }
+        .navigationTitle("Relecture des scènes")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 /// Every glyph with numbered start points and direction arrows.
 struct GlyphProofView: View {
     private let characters = GlyphLibrary.available
 
     var body: some View {
         ZStack {
-            LinearGradient.ninjaBackdrop.ignoresSafeArea()
+            Baseplate().ignoresSafeArea()
             ScrollView {
                 LazyVGrid(columns: Array(repeating: GridItem(spacing: 10), count: 4), spacing: 10) {
                     ForEach(characters, id: \.self) { character in

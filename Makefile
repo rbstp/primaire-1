@@ -58,7 +58,7 @@ shot:
 
 icon:
 	@mkdir -p $(BUILD)
-	swiftc -O -o $(BUILD)/generate-icon scripts/icon/main.swift Sources/MissionNinja/Theme/Paint.swift
+	swiftc -O -o $(BUILD)/generate-icon scripts/icon/main.swift Sources/MissionNinja/Theme/Paint.swift Sources/MissionNinja/Theme/BrickTone.swift
 	$(BUILD)/generate-icon "$(ICON)"
 
 archive: project

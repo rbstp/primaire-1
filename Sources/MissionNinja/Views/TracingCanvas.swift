@@ -48,6 +48,10 @@ private struct Surface: View {
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
                         .stroke(Palette.blade.opacity(0.3).color, lineWidth: 2)
                 )
+                .overlay(alignment: .top) {
+                    StudRow(count: 8, tone: .night, height: 9)
+                        .offset(y: -5)
+                }
 
             RuleLines()
 
@@ -213,15 +217,22 @@ private struct InkLayer: View {
     }
 }
 
+/// Where the pencil goes down: a gold stud, the one gold thing on the plate.
 private struct StartDot: View {
     let at: UnitPoint2
     let side: Double
     let pulsing: Bool
 
     var body: some View {
-        Circle()
-            .fill(Palette.gold.color)
-            .frame(width: 22, height: 22)
+        ZStack {
+            Circle()
+                .fill(Palette.gold.mixed(with: Palette.ink, amount: 0.35).color)
+                .frame(width: 24, height: 24)
+            Circle()
+                .fill(Palette.gold.color)
+                .frame(width: 22, height: 22)
+                .offset(y: -2)
+        }
             .scaleEffect(pulsing ? 1.35 : 1)
             .position(x: at.x * side, y: at.y * side)
             .allowsHitTesting(false)

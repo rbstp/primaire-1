@@ -56,6 +56,7 @@ struct RootView: View {
         case .trace: TraceModeView(week: week)
         case .log: MissionLogView(week: week)
         case .glyphs: GlyphProofView()
+        case .scenes: SceneProofView()
         }
     }
     #endif
