@@ -21,6 +21,7 @@ final class Speaker {
 
     init(configuresSession: Bool = true) {
         if configuresSession { Speaker.configureSession() }
+
         voice = Speaker.bestFrenchVoice()
         warmUp()
         voiceWatch.token = NotificationCenter.default.addObserver(
@@ -124,10 +125,15 @@ final class Speaker {
 
     /// Playback so the silent switch cannot mute a lesson about vowel sounds,
     /// and without mixing so another app's music cannot bury it.
+    ///
+    /// Off the main thread: setActive blocks, and on the main thread it shows
+    /// up as a hang risk at launch.
     static func configureSession() {
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, mode: .default, options: [])
-        try? session.setActive(true)
+        Task.detached(priority: .userInitiated) {
+            let session = AVAudioSession.sharedInstance()
+            try? session.setCategory(.playback, mode: .default, options: [])
+            try? session.setActive(true)
+        }
     }
 }
 

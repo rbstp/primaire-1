@@ -65,12 +65,21 @@ private func trace(
         #expect(validator.advance == 1)
     }
 
-    /// Closing an o to the very last sample is impossible at six, and the first
-    /// reason a child gives up.
-    @Test func aStrokeEndsALittleBeforeItsEnd() {
+    /// The give is the capture radius, not a shortened arc: stopping a
+    /// fingertip's width short still finishes, but the whole stroke is walked.
+    @Test func aFingertipShortOfTheEndStillFinishes() {
         let stroke = straight()
         var validator = TraceValidator(stroke: stroke, canvasSide: canvas)
         #expect(trace(&validator, stroke, upTo: 0.94) == .finished)
+    }
+
+    /// The tail of an e and the foot of a u are the last few percent of the
+    /// stroke, so nothing may be skipped wholesale.
+    @Test func doesNotSkipTheTailOfAStroke() {
+        let stroke = straight()
+        var validator = TraceValidator(stroke: stroke, canvasSide: canvas)
+        #expect(trace(&validator, stroke, upTo: 0.80) != .finished)
+        #expect(!validator.isComplete)
     }
 
     @Test func stoppingShortDoesNotComplete() {

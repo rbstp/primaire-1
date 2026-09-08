@@ -50,7 +50,9 @@ struct TraceModeView: View {
             Spacer(minLength: 0)
         }
         .padding(.top, 8)
-        .frame(maxWidth: 620)
+        // Wider than the other screens: the canvas is square, so a narrow
+        // column would waste most of an iPad.
+        .frame(maxWidth: 820)
         .frame(maxWidth: .infinity)
     }
 

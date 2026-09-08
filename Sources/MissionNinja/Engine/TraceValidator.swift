@@ -16,8 +16,10 @@ struct TraceValidator: Equatable, Sendable {
         let stray: Double
         /// How far ahead the cursor may jump, as a fraction of arc length.
         let lookAhead: Double
-        /// A stroke is done a little before its very end: closing an o to the
-        /// pixel is impossible at six, and the first reason children give up.
+        /// A stroke has to be walked to its last sample. The give comes from
+        /// the capture radius alone, which already lets the finger finish a
+        /// good centimetre off the end; cutting a further fraction of the arc
+        /// visibly skipped the tail of an e and the foot of a u.
         let completion: Double
         /// Finger direction against pen direction. Very permissive, so
         /// hesitating does not block him.
@@ -39,7 +41,7 @@ struct TraceValidator: Equatable, Sendable {
                 capture: capture,
                 stray: capture * 2.2,
                 lookAhead: 0.10,
-                completion: 0.92,
+                completion: 1,
                 alignment: -0.2,
                 interpolation: 8 / side
             )
