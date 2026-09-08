@@ -1,14 +1,13 @@
 name: ci
 run-name: "[ci] - testing ${{ github.ref_name }}"
 
+# Pull requests only: testflight tests the exact revision it ships, so a master run duplicated it.
 on:
   pull_request:
-  push:
-    branches:
-      - master
     paths-ignore:
       - '.github/**'
       - 'README.md'
+      - 'CLAUDE.md'
 
 concurrency:
   group: test-${{ github.ref }}
