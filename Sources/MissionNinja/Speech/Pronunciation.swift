@@ -14,18 +14,25 @@ struct Utterance: Equatable, Sendable {
     }
 }
 
-/// In French a vowel's name and its sound coincide, except for y: it is called
-/// "i grec" but it makes the sound of an i. That distinction is exactly what
-/// the lesson plan asks him to learn.
+/// A letter is named the way the class names it ("i grec"), and its sound is
+/// taught through a word he knows rather than in isolation: "y fait i" meant
+/// nothing to him, "comme dans Yannick" does.
 enum Pronunciation {
     static func letterName(_ character: Character) -> Utterance {
         let letter = Character(String(character).lowercased())
         return names[letter] ?? Utterance(String(character))
     }
 
-    static func letterSound(_ character: Character) -> Utterance {
-        let letter = Character(String(character).lowercased())
-        return sounds[letter] ?? letterName(letter)
+    /// Words that start with the vowel, for the vowel wall.
+    static func exampleWords(for character: Character) -> [String] {
+        examples[Character(String(character).lowercased())] ?? []
+    }
+
+    /// "La lettre e, comme dans" then "étoile" as its own utterance: in one
+    /// phrase the synthesiser liaises "dans étoile" into "dan-zétoile", and he
+    /// hears a word that does not start with e.
+    static func introduction(of character: Character, word: String) -> [Utterance] {
+        [Utterance("La lettre \(letterName(character).text), comme dans"), Utterance(word)]
     }
 
     static func numberWord(_ value: Int) -> Utterance {
@@ -111,12 +118,15 @@ enum Pronunciation {
         "z": Utterance("zède", ipa: "zɛd"),
     ]
 
-    private static let sounds: [Character: Utterance] = [
-        "a": Utterance("a", ipa: "a"),
-        "e": Utterance("eu", ipa: "ə"),
-        "i": Utterance("i", ipa: "i"),
-        "o": Utterance("o", ipa: "o"),
-        "u": Utterance("u", ipa: "y"),
-        "y": Utterance("i", ipa: "i"),
+    /// Four words each, every one starting with the letter, accent or not:
+    /// the point is to see the letter open a word he knows. No igloo: the
+    /// voice reads it "iglou".
+    private static let examples: [Character: [String]] = [
+        "a": ["avion", "ananas", "abeille", "arbre"],
+        "e": ["éléphant", "école", "étoile", "escargot"],
+        "i": ["insecte", "image", "iguane", "île"],
+        "o": ["orange", "olive", "otarie", "oiseau"],
+        "u": ["usine", "univers", "uniforme", "ustensile"],
+        "y": ["Yannick", "yoyo", "yogourt", "yéti"],
     ]
 }

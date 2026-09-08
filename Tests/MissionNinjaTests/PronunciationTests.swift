@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import MissionNinja
@@ -19,21 +20,32 @@ import Testing
 
     @Test func namesTheUppercaseTheSameWay() {
         #expect(Pronunciation.letterName("A") == Pronunciation.letterName("a"))
-        #expect(Pronunciation.letterSound("U") == Pronunciation.letterSound("u"))
+        #expect(Pronunciation.exampleWords(for: "Y") == Pronunciation.exampleWords(for: "y"))
     }
 
-    /// The one vowel whose name and sound differ, and the lesson plan asks for
-    /// both.
-    @Test func separatesTheNameOfYFromItsSound() {
+    @Test func namesYTheWayTheClassDoes() {
         #expect(Pronunciation.letterName("y").text == "i grec")
-        #expect(Pronunciation.letterSound("y").text == "i")
-        #expect(Pronunciation.letterName("y") != Pronunciation.letterSound("y"))
     }
 
-    @Test func aVowelNameAndSoundOtherwiseMatch() {
-        for vowel in Array("aiou") {
-            #expect(Pronunciation.letterName(vowel) == Pronunciation.letterSound(vowel))
+    /// Four different words per vowel, each one starting with the letter,
+    /// accent or not, so the wall never says "y fait i" to a child for whom
+    /// that means nothing.
+    @Test func givesFourExampleWordsStartingWithTheVowel() {
+        for vowel in Array("aeiouy") {
+            let words = Pronunciation.exampleWords(for: vowel)
+            #expect(words.count == 4, "\(vowel) a \(words.count) mots")
+            #expect(Set(words).count == words.count, "\(vowel) répète un mot")
+            for word in words {
+                let first = word.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_CA")).first
+                #expect(first == vowel, "\(word) ne commence pas par \(vowel)")
+            }
         }
+    }
+
+    /// The word stands alone, so no liaison can glue a consonant onto it.
+    @Test func introducesALetterWithAWordKeptApart() {
+        let script = Pronunciation.introduction(of: "e", word: "étoile")
+        #expect(script.map(\.text) == ["La lettre e, comme dans", "étoile"])
     }
 
     @Test func knowsTheVowels() {
