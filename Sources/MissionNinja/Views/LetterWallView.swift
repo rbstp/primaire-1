@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// "Je reconnais les voyelles, leur nom et leur bruit." Touch a vowel and it
-/// says its name, then the sound it makes. No score, no pressure: this is the
-/// part he explores.
+/// says its name, then a word he knows that starts with it, a different one
+/// each time. No score, no pressure: this is the part he explores.
 struct LetterWallView: View {
     let week: Week
 
@@ -10,6 +10,8 @@ struct LetterWallView: View {
     @Environment(SoundEffects.self) private var effects
 
     @State private var spoken: Character?
+    @State private var word = ""
+    @State private var random = SeededRandom.fresh()
 
     private var vowels: [Character] { week.letters.vowels.characters }
 
@@ -18,7 +20,7 @@ struct LetterWallView: View {
             Baseplate().ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
-                    Text("Touche une voyelle pour entendre son nom, puis son bruit.")
+                    Text("Touche une voyelle pour entendre son nom et un mot qui commence par elle.")
                         .font(Typography.body)
                         .foregroundStyle(Palette.cream.opacity(0.75).color)
                         .multilineTextAlignment(.center)
@@ -37,10 +39,10 @@ struct LetterWallView: View {
                     if let spoken {
                         NinjaCard {
                             VStack(spacing: 8) {
-                                Text("La lettre \(Pronunciation.letterName(spoken).text)")
+                                Text("La lettre \(spoken)")
                                     .font(Typography.sectionTitle)
                                     .foregroundStyle(.ninjaCream)
-                                Text("fait le bruit « \(Pronunciation.letterSound(spoken).text) »")
+                                Text("comme dans « \(word) »")
                                     .font(Typography.body)
                                     .foregroundStyle(.ninjaAzure)
                             }
@@ -59,14 +61,13 @@ struct LetterWallView: View {
         .onDisappear { speaker.stop() }
     }
 
+    /// Never the same word twice in a row on the same letter.
     private func say(_ vowel: Character) {
+        let choices = Pronunciation.exampleWords(for: vowel).filter { $0 != word || spoken != vowel }
+        word = random.shuffled(choices).first ?? String(vowel)
         spoken = vowel
         effects.play(.tap)
-        speaker.say([
-            Pronunciation.letterName(vowel),
-            Utterance("fait"),
-            Pronunciation.letterSound(vowel),
-        ])
+        speaker.say(Pronunciation.introduction(of: vowel, word: word))
     }
 }
 
