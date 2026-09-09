@@ -64,6 +64,9 @@ final class TracingEngine {
     var cursorPoint: UnitPoint2 { tracer.validator.cursorPoint }
     var startPoint: UnitPoint2 { tracer.validator.startPoint }
     var needsStartTouch: Bool { !tracer.validator.isDown && tracer.validator.cursor == 0 }
+    /// Which way the pen leaves the start dot, for the arrow that says so.
+    var startHeading: UnitPoint2 { tracer.validator.stroke.tangent(at: 1) }
+    var startsWithDot: Bool { tracer.validator.isDot }
 
     var inkWidth: Double { tracer.validator.tolerance.capture * side * 0.9 }
     /// Drawn as two layers: a faint halo the exact width of the tolerance, so

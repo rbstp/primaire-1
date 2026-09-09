@@ -32,20 +32,20 @@ enum ProgressEvent: Equatable, Sendable {
     /// character form, and forcing one traps at runtime.
     case answered(key: String, drill: DrillKind, firstTry: Bool, correct: Bool)
     case tracedGlyph(Character, clean: Bool)
+    case builtName(clean: Bool)
     case tickedTask(TaskTick)
     case untickedTask(TaskTick)
     case practised(DayKey)
+    case timeSpent(seconds: Int)
 }
 
-/// Everything the app remembers. A plain value, so every rule below is a pure
-/// function and testable without SwiftUI or UserDefaults.
-struct Progress: Codable, Equatable, Sendable {
-    static let currentSchema = 1
-    static let dayHistoryLimit = 400
-
-    var schema = Progress.currentSchema
+/// What one week earned and taught. The belt is read from here, so every
+/// Monday he starts over from white.
+struct WeekProgress: Codable, Equatable, Sendable {
     var stars = 0
-    /// Listening and reading, keyed by the character or number asked.
+    /// Time with the app in the foreground.
+    var seconds = 0
+    /// Listening and reading, keyed by the character, number or name asked.
     var characters: [String: CharacterRecord] = [:]
     /// Handwriting, kept apart: writing an a well says nothing about hearing
     /// it, and mixing the two made a well traced letter stop being asked.
@@ -54,29 +54,24 @@ struct Progress: Codable, Equatable, Sendable {
     /// parent rather than used against him.
     var tracedClean: [String: Int] = [:]
     var drills: [String: DrillRecord] = [:]
-    var tickedTasks: Set<TaskTick> = []
-    var practiceDays: Set<DayKey> = []
-    /// Ticks that have already paid out a star, so unticking and reticking a
-    /// task cannot farm stars.
-    var paidTicks: Set<TaskTick> = []
 
     init() {}
 
     init(from decoder: any Decoder) throws {
         let box = try decoder.container(keyedBy: CodingKeys.self)
-        schema = try box.decodeIfPresent(Int.self, forKey: .schema) ?? Progress.currentSchema
         stars = try box.decodeIfPresent(Int.self, forKey: .stars) ?? 0
+        seconds = try box.decodeIfPresent(Int.self, forKey: .seconds) ?? 0
         characters = try box.decodeIfPresent([String: CharacterRecord].self, forKey: .characters) ?? [:]
         traced = try box.decodeIfPresent([String: Int].self, forKey: .traced) ?? [:]
         tracedClean = try box.decodeIfPresent([String: Int].self, forKey: .tracedClean) ?? [:]
         drills = try box.decodeIfPresent([String: DrillRecord].self, forKey: .drills) ?? [:]
-        tickedTasks = try box.decodeIfPresent(Set<TaskTick>.self, forKey: .tickedTasks) ?? []
-        practiceDays = try box.decodeIfPresent(Set<DayKey>.self, forKey: .practiceDays) ?? []
-        paidTicks = try box.decodeIfPresent(Set<TaskTick>.self, forKey: .paidTicks) ?? []
     }
 
     var belt: Belt { Belt.earned(stars: stars) }
     var beltAdvance: Double { Belt.advance(stars: stars) }
+
+    var asked: Int { drills.values.reduce(0) { $0 + $1.asked } }
+    var solvedFirstTry: Int { drills.values.reduce(0) { $0 + $1.solvedFirstTry } }
 
     func record(for key: String) -> CharacterRecord {
         characters[key] ?? CharacterRecord()
@@ -90,45 +85,98 @@ struct Progress: Codable, Equatable, Sendable {
         drills[drill.rawValue] ?? DrillRecord()
     }
 
-    func timesTraced(_ character: Character) -> Int {
-        traced[String(character)] ?? 0
+    func timesTraced(_ key: String) -> Int {
+        traced[key] ?? 0
     }
 
-    func timesTracedCleanly(_ character: Character) -> Int {
-        tracedClean[String(character)] ?? 0
+    func timesTracedCleanly(_ key: String) -> Int {
+        tracedClean[key] ?? 0
     }
+
+    fileprivate mutating func tally(_ drill: DrillKind, firstTry: Bool) {
+        var kind = record(for: drill)
+        kind.asked += 1
+        if firstTry {
+            kind.solvedFirstTry += 1
+            stars += 1
+        }
+        drills[drill.rawValue] = kind
+    }
+}
+
+/// Everything the app remembers. A plain value, so every rule below is a pure
+/// function and testable without SwiftUI or UserDefaults.
+struct Progress: Codable, Equatable, Sendable {
+    static let currentSchema = 2
+    static let dayHistoryLimit = 400
+
+    var schema = Progress.currentSchema
+    /// Every star ever earned. Belts read the week, this is for the parent.
+    var stars = 0
+    /// Keyed by the Monday of the week, as an ISO day.
+    var weeks: [String: WeekProgress] = [:]
+    var tickedTasks: Set<TaskTick> = []
+    var practiceDays: Set<DayKey> = []
+    /// Ticks that have already paid out a star, so unticking and reticking a
+    /// task cannot farm stars.
+    var paidTicks: Set<TaskTick> = []
+
+    init() {}
+
+    /// A document from a newer app is refused rather than half read and then
+    /// written back over. Older ones are upgraded on the way in.
+    init(from decoder: any Decoder) throws {
+        let box = try decoder.container(keyedBy: CodingKeys.self)
+        let written = try box.decodeIfPresent(Int.self, forKey: .schema) ?? 1
+        guard written <= Progress.currentSchema else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .schema, in: box, debugDescription: "schema \(written) is newer than \(Progress.currentSchema)"
+            )
+        }
+        stars = try box.decodeIfPresent(Int.self, forKey: .stars) ?? 0
+        weeks = try box.decodeIfPresent([String: WeekProgress].self, forKey: .weeks) ?? [:]
+        tickedTasks = try box.decodeIfPresent(Set<TaskTick>.self, forKey: .tickedTasks) ?? []
+        practiceDays = try box.decodeIfPresent(Set<DayKey>.self, forKey: .practiceDays) ?? []
+        paidTicks = try box.decodeIfPresent(Set<TaskTick>.self, forKey: .paidTicks) ?? []
+    }
+
+    func week(_ key: String) -> WeekProgress {
+        weeks[key] ?? WeekProgress()
+    }
+
+    /// Newest first.
+    var weekKeys: [String] { weeks.keys.sorted(by: >) }
 
     func isTicked(_ tick: TaskTick) -> Bool { tickedTasks.contains(tick) }
 
-    mutating func apply(_ event: ProgressEvent) {
+    mutating func apply(_ event: ProgressEvent, in week: String) {
+        var current = self.week(week)
+        let before = current.stars
+
         switch event {
         case let .answered(key, drill, firstTry, correct):
-            var entry = record(for: key)
+            var entry = current.record(for: key)
             entry.attempts += 1
             if correct { entry.successes += 1 }
             if correct && firstTry { entry.firstTries += 1 }
-            characters[key] = entry
-
-            var kind = record(for: drill)
-            kind.asked += 1
-            if correct && firstTry {
-                kind.solvedFirstTry += 1
-                stars += 1
-            }
-            drills[drill.rawValue] = kind
+            current.characters[key] = entry
+            current.tally(drill, firstTry: correct && firstTry)
 
         case let .tracedGlyph(character, clean):
-            traced[String(character), default: 0] += 1
-            if clean { tracedClean[String(character), default: 0] += 1 }
-            var kind = record(for: .trace)
+            current.traced[String(character), default: 0] += 1
+            if clean { current.tracedClean[String(character), default: 0] += 1 }
+            current.tally(.trace, firstTry: true)
+
+        case let .builtName(clean):
+            var kind = current.record(for: .buildName)
             kind.asked += 1
-            kind.solvedFirstTry += 1
-            drills[DrillKind.trace.rawValue] = kind
-            stars += 1
+            if clean { kind.solvedFirstTry += 1 }
+            current.drills[DrillKind.buildName.rawValue] = kind
+            current.stars += 1
 
         case let .tickedTask(tick):
             tickedTasks.insert(tick)
-            if paidTicks.insert(tick).inserted { stars += 1 }
+            if paidTicks.insert(tick).inserted { current.stars += 1 }
 
         case let .untickedTask(tick):
             tickedTasks.remove(tick)
@@ -136,7 +184,13 @@ struct Progress: Codable, Equatable, Sendable {
         case let .practised(day):
             practiceDays.insert(day)
             trimHistory()
+
+        case let .timeSpent(seconds):
+            current.seconds += max(seconds, 0)
         }
+
+        stars += current.stars - before
+        if current != WeekProgress() { weeks[week] = current }
     }
 
     /// Consecutive days of practice ending today, or ending yesterday when

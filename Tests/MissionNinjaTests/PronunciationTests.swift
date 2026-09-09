@@ -54,9 +54,30 @@ import Testing
         #expect(Pronunciation.isVowel("A"))
     }
 
-    @Test func spellsOutEveryDigit() {
-        let expected = ["zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf"]
-        #expect((0...9).map { Pronunciation.numberWord($0).text } == expected)
+    @Test func spellsOutEveryNumberToTwenty() {
+        let expected = [
+            "zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
+            "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize", "dix-sept", "dix-huit", "dix-neuf", "vingt",
+        ]
+        #expect((0...20).map { Pronunciation.numberWord($0).text } == expected)
+    }
+
+    /// A name, twice, with nothing around it, like a letter or a number.
+    @Test func saysANameTwice() {
+        let script = Pronunciation.script(for: .spokenName("Zoé"))
+        #expect(script.map(\.text) == ["Zoé", "Zoé"])
+    }
+
+    /// The card says "Mme", the voice must not.
+    @Test func readsMadameInFull() {
+        #expect(Pronunciation.name("Mme Sylvie").text == "Madame Sylvie")
+        #expect(Pronunciation.name("Mme Sylvie").ipa == nil)
+        #expect(Pronunciation.correction(.name("Mme Catherine")).last?.text == "Madame Catherine")
+    }
+
+    @Test func spellsTheNamesTheFrenchVoiceMangles() {
+        #expect(Pronunciation.name("Hayden").ipa != nil)
+        #expect(Pronunciation.name("Zoé").ipa == nil)
     }
 
     /// "La lettre a", twice, with no instruction around it: an instruction
@@ -98,5 +119,6 @@ import Testing
     @Test func fallsBackToTheCharacterItself() {
         #expect(Pronunciation.letterName("é").text == "é")
         #expect(Pronunciation.numberWord(42).text == "42")
+        #expect(Pronunciation.name("Dalya").text == "Dalya")
     }
 }

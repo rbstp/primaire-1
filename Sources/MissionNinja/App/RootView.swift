@@ -18,8 +18,13 @@ struct RootView: View {
         .environment(store)
         .environment(speaker)
         .environment(effects)
+        .onAppear { store.resume() }
         .onChange(of: scenePhase) { _, phase in
-            guard phase != .active else { return }
+            if phase == .active {
+                store.resume()
+                return
+            }
+            store.pause()
             store.flush()
             speaker.stop()
         }
@@ -39,7 +44,7 @@ struct RootView: View {
 
     @ViewBuilder private var journey: some View {
         if let week {
-            DojoView(week: week) { self.week = nil }
+            DojoView(week: week, catalog: catalog) { self.week = nil }
         } else {
             WeekPickerView(catalog: catalog, today: store.today()) { week = $0 }
         }
@@ -48,9 +53,13 @@ struct RootView: View {
     #if DEBUG
     @ViewBuilder private func debugScreen(_ screen: DebugScreen, _ week: Week) -> some View {
         switch screen {
-        case .dojo: DojoView(week: week) {}
+        case .dojo: DojoView(week: week, catalog: catalog) {}
         case .letters: DrillView(week: week, mode: .constant(.letters))
         case .numbers: DrillView(week: week, mode: .constant(.numbers))
+        case .names: DrillView(week: week, mode: .constant(.names))
+        case .build: NameBuildView(week: week)
+        case .summary: WeekSummaryView(catalog: catalog)
+        case .parent: ParentView(week: week, catalog: catalog)
         case .vowels: LetterWallView(week: week)
         case .alphabet: AlphabetView(week: week)
         case .trace: TraceModeView(week: week)

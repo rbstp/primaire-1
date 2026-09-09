@@ -17,10 +17,16 @@
   },
   "numbers": {
     "from": 0,
-    "to": 9,
-    "counting": true
+    "to": 20,
+    "counting": true,
+    "focus": { "from": 10, "to": 20 }
   },
   "tracing": ["a", "e", "i", "o", "u", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"],
+  "names": [
+    "Ariel", "Arthur", "Séréna", "Hayden", "Mme Sylvie", "Loïc", "Mila", "Charlie",
+    "Nolan", "Olivia", "Gabriel", "Jeanne", "Noah", "Zoé", "Lauralie", "Émile",
+    "Mme Catherine", "Madison", "Sam", "Alice", "Lénox", "Dalya"
+  ],
   "tasks": [
     { "id": "chanson-alphabet", "title": "Je chante la chanson de l'alphabet", "place": "Duo-tang rouge, p. 1" },
     { "id": "deux-lignes", "title": "Je lis deux lignes", "place": "Duo-tang rouge, p. 2" },

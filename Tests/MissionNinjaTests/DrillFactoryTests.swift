@@ -5,7 +5,9 @@ import Testing
 private func week(
     vowels: GlyphList = ["a", "e", "i", "o", "u", "y"],
     digitsTo: Int = 9,
-    counting: Bool = true
+    counting: Bool = true,
+    focus: NumberSpan? = nil,
+    names: [String] = []
 ) -> Week {
     Week(
         schema: 1,
@@ -15,16 +17,33 @@ private func week(
         teacher: "Mme Catherine",
         days: [],
         letters: LetterPlan(vowels: vowels, alphabet: true),
-        numbers: NumberPlan(from: 0, to: digitsTo, counting: counting),
+        numbers: NumberPlan(from: 0, to: digitsTo, counting: counting, focus: focus),
         tracing: [],
+        names: names,
         tasks: []
     )
+}
+
+private extension WeekProgress {
+    mutating func apply(_ event: ProgressEvent) {
+        var progress = Progress()
+        progress.weeks["w"] = self
+        progress.apply(event, in: "w")
+        self = progress.week("w")
+    }
+}
+
+private let classNames = ["Ariel", "Arthur", "Séréna", "Hayden", "Mme Sylvie", "Loïc", "Mila", "Charlie", "Nolan", "Olivia"]
+
+private func answered(_ drill: Drill) -> Int? {
+    guard case let .number(value) = drill.answer else { return nil }
+    return value
 }
 
 @Suite struct DrillFactoryTests {
     @Test func buildsAFullLetterSession() {
         var random = SeededRandom(seed: 1)
-        let drills = DrillFactory.session(mode: .letters, week: week(), progress: Progress(), random: &random)
+        let drills = DrillFactory.session(mode: .letters, week: week(), progress: WeekProgress(), random: &random)
         #expect(drills.count == DrillFactory.drillsPerSession)
         #expect(drills.allSatisfy { $0.kind == .hearLetter })
         #expect(drills.map(\.id) == Array(0..<DrillFactory.drillsPerSession))
@@ -33,7 +52,7 @@ private func week(
     @Test func everyDrillHoldsItsOwnAnswer() {
         var random = SeededRandom(seed: 2)
         for mode in [DrillFactory.Mode.letters, .numbers] {
-            let drills = DrillFactory.session(mode: mode, week: week(), progress: Progress(), random: &random)
+            let drills = DrillFactory.session(mode: mode, week: week(), progress: WeekProgress(), random: &random)
             for drill in drills {
                 #expect(drill.choices.indices.contains(drill.answerIndex))
                 #expect(drill.choices.filter { $0 == drill.answer }.count == 1)
@@ -46,16 +65,16 @@ private func week(
         var random = SeededRandom(seed: 3)
         let plan = week(vowels: ["a", "e", "i"])
         let allowed = Set(plan.letters.vowels.characters.map(DrillChoice.letter))
-        let drills = DrillFactory.session(mode: .letters, week: plan, progress: Progress(), random: &random)
+        let drills = DrillFactory.session(mode: .letters, week: plan, progress: WeekProgress(), random: &random)
         for drill in drills {
             #expect(Set(drill.choices).isSubset(of: allowed))
         }
     }
 
     @Test func startsWithThreeChoicesAndWidensOnceMastered() {
-        #expect(DrillFactory.choiceWidth(for: .hearLetter, progress: Progress(), poolSize: 6) == 3)
+        #expect(DrillFactory.choiceWidth(for: .hearLetter, progress: WeekProgress(), poolSize: 6) == 3)
 
-        var mastered = Progress()
+        var mastered = WeekProgress()
         for _ in 0..<25 {
             mastered.apply(.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true))
         }
@@ -65,14 +84,14 @@ private func week(
     @Test func neverAsksForMoreChoicesThanTheWeekHas() {
         var random = SeededRandom(seed: 4)
         let plan = week(vowels: ["a", "e"])
-        let drills = DrillFactory.session(mode: .letters, week: plan, progress: Progress(), random: &random)
+        let drills = DrillFactory.session(mode: .letters, week: plan, progress: WeekProgress(), random: &random)
         #expect(drills.allSatisfy { $0.choices.count == 2 })
     }
 
     @Test func neverRepeatsTheSameTargetBackToBack() {
         for seed in UInt64(1)...20 {
             var random = SeededRandom(seed: seed)
-            let drills = DrillFactory.session(mode: .letters, week: week(), progress: Progress(), random: &random)
+            let drills = DrillFactory.session(mode: .letters, week: week(), progress: WeekProgress(), random: &random)
             for pair in zip(drills, drills.dropFirst()) {
                 #expect(pair.0.answer != pair.1.answer)
             }
@@ -81,7 +100,7 @@ private func week(
 
     @Test func mixesCountingIntoTheNumberSession() {
         var random = SeededRandom(seed: 5)
-        let drills = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &random)
+        let drills = DrillFactory.session(mode: .numbers, week: week(), progress: WeekProgress(), random: &random)
         #expect(drills.contains { $0.kind == .countObjects })
         #expect(drills.contains { $0.kind == .hearNumber })
     }
@@ -89,7 +108,7 @@ private func week(
     @Test func countingNeverShowsAnEmptyPile() {
         for seed in UInt64(1)...20 {
             var random = SeededRandom(seed: seed)
-            let drills = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &random)
+            let drills = DrillFactory.session(mode: .numbers, week: week(), progress: WeekProgress(), random: &random)
             for drill in drills where drill.kind == .countObjects {
                 guard case let .bricks(count) = drill.prompt else {
                     Issue.record("a counting drill must show bricks")
@@ -104,7 +123,7 @@ private func week(
     /// Neighbouring numbers force him to count instead of judging the pile size.
     @Test func countingDistractorsSitNextToTheAnswer() {
         var random = SeededRandom(seed: 6)
-        let drills = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &random)
+        let drills = DrillFactory.session(mode: .numbers, week: week(), progress: WeekProgress(), random: &random)
         for drill in drills where drill.kind == .countObjects {
             guard case let .bricks(count) = drill.prompt else { continue }
             let spread = drill.choices.compactMap { choice -> Int? in
@@ -117,12 +136,12 @@ private func week(
 
     @Test func skipsCountingWhenTheWeekDoesNotAskForIt() {
         var random = SeededRandom(seed: 7)
-        let drills = DrillFactory.session(mode: .numbers, week: week(counting: false), progress: Progress(), random: &random)
+        let drills = DrillFactory.session(mode: .numbers, week: week(counting: false), progress: WeekProgress(), random: &random)
         #expect(drills.allSatisfy { $0.kind == .hearNumber })
     }
 
     @Test func favoursWhatHeGetsWrong() {
-        var progress = Progress()
+        var progress = WeekProgress()
         for _ in 0..<20 {
             progress.apply(.answered(key: "a", drill: .hearLetter, firstTry: true, correct: true))
             progress.apply(.answered(key: "e", drill: .hearLetter, firstTry: true, correct: true))
@@ -148,16 +167,106 @@ private func week(
         #expect(weak > strong / 4)
     }
 
+    /// "Presque exclusivement de 10 à 20": most drills stay in the focus, and
+    /// a drill never mixes the two slices, or a lone two digit number among
+    /// single digits would give itself away.
+    @Test func dwellsOnTheFocusRange() {
+        var inFocus = 0
+        var total = 0
+        for seed in UInt64(1)...40 {
+            var random = SeededRandom(seed: seed)
+            let plan = week(digitsTo: 20, focus: NumberSpan(from: 10, to: 20))
+            let drills = DrillFactory.session(mode: .numbers, week: plan, progress: WeekProgress(), random: &random)
+            for drill in drills {
+                total += 1
+                guard let value = answered(drill) else { continue }
+                if value >= 10 { inFocus += 1 }
+                let choices = drill.choices.compactMap { choice -> Int? in
+                    guard case let .number(number) = choice else { return nil }
+                    return number
+                }
+                #expect(choices.allSatisfy { ($0 >= 10) == (value >= 10) }, "les deux blocs se mélangent dans \(choices)")
+            }
+        }
+        #expect(Double(inFocus) / Double(total) > 0.8)
+        #expect(inFocus < total, "le reste de la semaine doit encore revenir")
+    }
+
+    @Test func aFocusOutsideTheWeekIsIgnored() {
+        var random = SeededRandom(seed: 3)
+        let plan = week(digitsTo: 9, focus: NumberSpan(from: 30, to: 40))
+        let drills = DrillFactory.session(mode: .numbers, week: plan, progress: WeekProgress(), random: &random)
+        #expect(drills.count == DrillFactory.drillsPerSession)
+        #expect(drills.compactMap(answered).allSatisfy { (0...9).contains($0) })
+    }
+
+    @Test func countsUpToTwentyBricks() {
+        var seen: Set<Int> = []
+        for seed in UInt64(1)...60 {
+            var random = SeededRandom(seed: seed)
+            let plan = week(digitsTo: 20, focus: NumberSpan(from: 10, to: 20))
+            let drills = DrillFactory.session(mode: .numbers, week: plan, progress: WeekProgress(), random: &random)
+            for drill in drills where drill.kind == .countObjects {
+                guard case let .bricks(count) = drill.prompt else { continue }
+                #expect((1...DrillFactory.countingLimit).contains(count))
+                seen.insert(count)
+            }
+        }
+        #expect(seen.contains { $0 > 10 })
+    }
+
+    // MARK: Names
+
+    @Test func asksNamesAmongFiveChoices() {
+        var random = SeededRandom(seed: 9)
+        let drills = DrillFactory.session(mode: .names, week: week(names: classNames), progress: WeekProgress(), random: &random)
+        #expect(drills.count == DrillFactory.drillsPerSession)
+        for drill in drills {
+            #expect(drill.kind == .hearName)
+            #expect(drill.choices.count == DrillFactory.nameChoices)
+            #expect(Set(drill.choices).count == DrillFactory.nameChoices)
+            #expect(drill.isCorrect(drill.answer))
+            guard case let .spokenName(name) = drill.prompt else {
+                Issue.record("a name drill must speak a name")
+                continue
+            }
+            #expect(drill.answer == .name(name))
+            #expect(classNames.contains(name))
+        }
+    }
+
+    @Test func aSmallClassGetsFewerNameChoices() {
+        var random = SeededRandom(seed: 10)
+        let drills = DrillFactory.session(mode: .names, week: week(names: ["Ariel", "Zoé", "Sam"]), progress: WeekProgress(), random: &random)
+        #expect(drills.allSatisfy { $0.choices.count == 3 })
+    }
+
+    @Test func namesNeedAtLeastTwoToBeAsked() {
+        var random = SeededRandom(seed: 11)
+        #expect(DrillFactory.session(mode: .names, week: week(names: ["Ariel"]), progress: WeekProgress(), random: &random).isEmpty)
+        #expect(DrillFactory.session(mode: .names, week: week(), progress: WeekProgress(), random: &random).isEmpty)
+    }
+
+    @Test func neverAsksTheSameNameBackToBack() {
+        for seed in UInt64(1)...20 {
+            var random = SeededRandom(seed: seed)
+            let drills = DrillFactory.session(mode: .names, week: week(names: classNames), progress: WeekProgress(), random: &random)
+            for pair in zip(drills, drills.dropFirst()) {
+                #expect(pair.0.answer != pair.1.answer)
+            }
+        }
+    }
+
     @Test func isDeterministicForAGivenSeed() {
         var left = SeededRandom(seed: 99)
         var right = SeededRandom(seed: 99)
-        let a = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &left)
-        let b = DrillFactory.session(mode: .numbers, week: week(), progress: Progress(), random: &right)
+        let a = DrillFactory.session(mode: .numbers, week: week(), progress: WeekProgress(), random: &left)
+        let b = DrillFactory.session(mode: .numbers, week: week(), progress: WeekProgress(), random: &right)
         #expect(a == b)
     }
 
     @Test func returnsNothingForAnEmptyWeek() {
         var random = SeededRandom(seed: 8)
-        #expect(DrillFactory.session(mode: .letters, week: week(vowels: []), progress: Progress(), random: &random).isEmpty)
+        #expect(DrillFactory.session(mode: .letters, week: week(vowels: []), progress: WeekProgress(), random: &random).isEmpty)
     }
 }

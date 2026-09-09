@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The launch screen. The current week is one big button so he can start on
-/// his own; the other weeks sit below for when we want to go back over them.
+/// his own; the other weeks sit below for when we want to go back over them,
+/// and the week by week summary for the parent closes the list.
 struct WeekPickerView: View {
     let catalog: WeekCatalog
     let today: DayKey
@@ -26,6 +27,10 @@ struct WeekPickerView: View {
                         }
                     }
                     if !others.isEmpty { archive }
+                    NavigationLink("Bilan des semaines") {
+                        WeekSummaryView(catalog: catalog)
+                    }
+                    .buttonStyle(NinjaButtonStyle(prominent: false))
                 }
                 .padding(20)
                 .frame(maxWidth: 620)

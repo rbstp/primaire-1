@@ -1,8 +1,8 @@
 # Mission Ninja
 
-Une app d'entraînement pour la 1re année, à l'école Notre-Dame-de-La-Paix. L'enseignante distribue un plan de leçons par semaine; l'app en prend la partie répétitive et la rend jouable: reconnaître les voyelles et leur bruit, chanter l'alphabet, lire les chiffres de 0 à 9, compter, et écrire les lettres au doigt. Le reste du plan, celui qui se fait sur papier, se coche dans le carnet.
+Une app d'entraînement pour la 1re année, à l'école Notre-Dame-de-La-Paix. L'enseignante distribue un plan de leçons par semaine; l'app en prend la partie répétitive et la rend jouable: reconnaître les voyelles et leur bruit, chanter l'alphabet, lire les chiffres et les nombres, compter par groupes de cinq, reconnaître et construire le prénom des amis de la classe, et écrire les lettres au doigt. Le reste du plan, celui qui se fait sur papier, se coche dans le carnet.
 
-Thème ninja et blocs de construction, bleu et noir, tout en français canadien. Chaque bouton est une brique qui s'enfonce quand on appuie, la mascotte est un petit ninja à cagoule avec son katana, et chaque lettre de l'alphabet trouvée pose une brique d'un dragon que le ninja combat une fois fini. Chaque entraînement terminé se célèbre par une petite scène animée: le dragon, une pile de briques abattue au shuriken, ou une tour à escalader. Une voix dit chaque consigne, parce qu'il ne lit pas encore. Les étoiles gagnées font monter les ceintures, de la blanche à la noire.
+Thème ninja et blocs de construction, bleu et noir, tout en français canadien. Chaque bouton est une brique qui s'enfonce quand on appuie, la mascotte est un petit ninja à cagoule avec son katana, et chaque lettre de l'alphabet trouvée pose une brique d'un dragon que le ninja combat une fois fini. Chaque entraînement terminé se célèbre par une petite scène animée: le dragon, une pile de briques abattue au shuriken, ou une tour à escalader. Une voix dit chaque consigne, parce qu'il ne lit pas encore. Les étoiles gagnées font monter les ceintures, de la blanche à la noire, et chaque lundi repart à blanc.
 
 Tout est généré en code: aucune dépendance tierce, aucun fichier audio, aucune image. Les effets sonores sont synthétisés au lancement, l'icône vient d'un script, le dragon est une mosaïque écrite en texte, et les lettres à tracer sont des suites de traits écrites à la main dans l'ordre où on les enseigne.
 
@@ -59,8 +59,9 @@ Une semaine est un fichier `Resources/Weeks/<lundi>.json`, nommé par la date du
     { "name": "lundi", "atSchool": true, "note": null }
   ],
   "letters": { "vowels": ["a", "e", "i"], "alphabet": true },
-  "numbers": { "from": 0, "to": 9, "counting": true },
+  "numbers": { "from": 0, "to": 20, "counting": true, "focus": { "from": 10, "to": 20 } },
   "tracing": ["a", "e", "i"],
+  "names": ["Ariel", "Zoé", "Mme Sylvie"],
   "tasks": [
     { "id": "deux-lignes", "title": "Je lis deux lignes", "place": "Duo-tang rouge, p. 2" }
   ]
@@ -73,7 +74,7 @@ Les caractères de `tracing` doivent exister dans `GlyphLibrary`. Aujourd'hui: `
 
 ## Écran pour les parents
 
-Appui long de trois secondes sur le badge de ceinture. Il montre la réussite par caractère et par exercice, la série de jours, et la voix que la synthèse a réellement trouvée. Si elle n'est pas québécoise, le chemin des réglages iOS y est indiqué.
+Appui long de trois secondes sur le badge de ceinture. Il montre, pour la semaine en cours, la ceinture, le temps passé dans l'app, la réussite par caractère, par prénom et par exercice, puis la série de jours et la voix que la synthèse a réellement trouvée. Le bilan des semaines, aussi accessible depuis l'écran de sélection des semaines, aligne toutes les semaines. Si elle n'est pas québécoise, le chemin des réglages iOS y est indiqué.
 
 ## Livraison à TestFlight
 

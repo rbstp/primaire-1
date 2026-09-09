@@ -4,27 +4,34 @@ import Foundation
 /// same week, so a session never asks about something the class has not seen.
 enum DrillFactory {
     static let drillsPerSession = 10
+    static let nameChoices = 5
+    /// How often a number drill stays inside the week's focus range.
+    static let focusShare = 0.9
+    /// Past this many bricks the pile stops being countable at a glance.
+    static let countingLimit = 20
 
     enum Mode: String, Sendable {
         case letters
         case numbers
+        case names
     }
 
     static func session(
         mode: Mode,
         week: Week,
-        progress: Progress,
+        progress: WeekProgress,
         random: inout SeededRandom
     ) -> [Drill] {
         switch mode {
         case .letters: letterSession(week: week, progress: progress, random: &random)
         case .numbers: numberSession(week: week, progress: progress, random: &random)
+        case .names: nameSession(week: week, progress: progress, random: &random)
         }
     }
 
     // MARK: Letters
 
-    private static func letterSession(week: Week, progress: Progress, random: inout SeededRandom) -> [Drill] {
+    private static func letterSession(week: Week, progress: WeekProgress, random: inout SeededRandom) -> [Drill] {
         let pool = week.letters.vowels.characters
         guard !pool.isEmpty else { return [] }
         let width = choiceWidth(for: .hearLetter, progress: progress, poolSize: pool.count)
@@ -42,7 +49,7 @@ enum DrillFactory {
 
     // MARK: Numbers
 
-    private static func numberSession(week: Week, progress: Progress, random: inout SeededRandom) -> [Drill] {
+    private static func numberSession(week: Week, progress: WeekProgress, random: inout SeededRandom) -> [Drill] {
         let pool = week.numbers.digits
         guard !pool.isEmpty else { return [] }
         let width = choiceWidth(for: .hearNumber, progress: progress, poolSize: pool.count)
@@ -52,19 +59,30 @@ enum DrillFactory {
         var drills: [Drill] = []
         var previous: Int?
         for index in 0..<drillsPerSession {
+            let slice = focused(week.numbers, within: pool, random: &random)
             let counting = week.numbers.counting && index.isMultiple(of: 2)
-            if counting, let drill = countingDrill(id: index, pool: pool, width: countingWidth, avoiding: previous, progress: progress, random: &random) {
+            if counting, let drill = countingDrill(id: index, pool: slice, width: countingWidth, avoiding: previous, progress: progress, random: &random) {
                 previous = countedValue(of: drill)
                 drills.append(drill)
                 continue
             }
-            let target = pick(from: pool, avoiding: previous, key: String.init, progress: progress, random: &random)
+            let target = pick(from: slice, avoiding: previous, key: String.init, progress: progress, random: &random)
             previous = target
-            let choices = choices(target: target, pool: pool, width: width, random: &random)
+            let choices = choices(target: target, pool: slice, width: width, random: &random)
                 .map(DrillChoice.number)
             drills.append(drill(id: index, kind: .hearNumber, prompt: .spokenNumber(target), choices: choices, answer: .number(target)))
         }
         return drills
+    }
+
+    /// Each drill is drawn from the focus or from the rest of the week, never
+    /// from both at once: a 4 among 12, 14 and 17 is dismissed without reading
+    /// anything, and so is a 14 among 2, 4 and 7.
+    private static func focused(_ plan: NumberPlan, within pool: [Int], random: inout SeededRandom) -> [Int] {
+        let focus = plan.focused
+        let rest = pool.filter { !focus.contains($0) }
+        guard focus.count > 1, rest.count > 1 else { return pool }
+        return random.nextUnit() < focusShare ? focus : rest
     }
 
     /// Counting starts at one, because no brick on screen is not a puzzle.
@@ -75,10 +93,10 @@ enum DrillFactory {
         pool: [Int],
         width: Int,
         avoiding previous: Int?,
-        progress: Progress,
+        progress: WeekProgress,
         random: inout SeededRandom
     ) -> Drill? {
-        let countable = pool.filter { (1...9).contains($0) }
+        let countable = pool.filter { (1...countingLimit).contains($0) }
         guard !countable.isEmpty else { return nil }
         let target = pick(from: countable, avoiding: previous, key: String.init, progress: progress, random: &random)
         let neighbours = countable
@@ -93,6 +111,26 @@ enum DrillFactory {
     private static func countedValue(of drill: Drill) -> Int? {
         guard case let .bricks(count) = drill.prompt else { return nil }
         return count
+    }
+
+    // MARK: Names
+
+    /// Always five names: the bus card exercise is about telling a friend's
+    /// name from the others, and with fewer the first letter gives it away.
+    private static func nameSession(week: Week, progress: WeekProgress, random: inout SeededRandom) -> [Drill] {
+        let pool = week.names
+        guard pool.count > 1 else { return [] }
+        let width = min(nameChoices, pool.count)
+        var drills: [Drill] = []
+        var previous: String?
+        for index in 0..<drillsPerSession {
+            let target = pick(from: pool, avoiding: previous, key: { $0 }, progress: progress, random: &random)
+            previous = target
+            let choices = choices(target: target, pool: pool, width: width, random: &random)
+                .map(DrillChoice.name)
+            drills.append(drill(id: index, kind: .hearName, prompt: .spokenName(target), choices: choices, answer: .name(target)))
+        }
+        return drills
     }
 
     // MARK: Shared
@@ -115,7 +153,7 @@ enum DrillFactory {
 
     /// Three choices while he is learning, four once he answers most of them
     /// right on the first try.
-    static func choiceWidth(for kind: DrillKind, progress: Progress, poolSize: Int) -> Int {
+    static func choiceWidth(for kind: DrillKind, progress: WeekProgress, poolSize: Int) -> Int {
         let record = progress.record(for: kind)
         let mastered = record.asked >= 20 && Double(record.solvedFirstTry) / Double(record.asked) >= 0.8
         return min(mastered ? 4 : 3, max(poolSize, 2))
@@ -129,7 +167,7 @@ enum DrillFactory {
         from pool: [T],
         avoiding previous: T?,
         key: (T) -> String,
-        progress: Progress,
+        progress: WeekProgress,
         random: inout SeededRandom
     ) -> T {
         let candidates = pool.count > 1 ? pool.filter { $0 != previous } : pool

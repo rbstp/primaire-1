@@ -3,6 +3,8 @@ import Foundation
 enum DrillKind: String, CaseIterable, Codable, Sendable {
     case hearLetter
     case hearNumber
+    case hearName
+    case buildName
     case countObjects
     case alphabetOrder
     case trace
@@ -11,6 +13,8 @@ enum DrillKind: String, CaseIterable, Codable, Sendable {
         switch self {
         case .hearLetter: "Trouve la lettre"
         case .hearNumber: "Trouve le chiffre ou le nombre"
+        case .hearName: "Trouve le prénom"
+        case .buildName: "Construis le prénom"
         case .countObjects: "Compte les briques"
         case .alphabetOrder: "L'alphabet dans l'ordre"
         case .trace: "Le tracé"
@@ -23,17 +27,20 @@ enum DrillKind: String, CaseIterable, Codable, Sendable {
 enum DrillPrompt: Equatable, Sendable {
     case spokenLetter(Character)
     case spokenNumber(Int)
+    case spokenName(String)
     case bricks(Int)
 }
 
 enum DrillChoice: Equatable, Hashable, Sendable {
     case letter(Character)
     case number(Int)
+    case name(String)
 
     var label: String {
         switch self {
         case let .letter(character): String(character)
         case let .number(value): String(value)
+        case let .name(name): name
         }
     }
 
@@ -43,6 +50,7 @@ enum DrillChoice: Equatable, Hashable, Sendable {
         switch self {
         case let .letter(character): String(character)
         case let .number(value): String(value)
+        case let .name(name): name
         }
     }
 }

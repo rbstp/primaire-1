@@ -74,16 +74,17 @@ import Testing
             letters: LetterPlan(vowels: ["a"], alphabet: true),
             numbers: NumberPlan(from: 0, to: 10, counting: true),
             tracing: [],
+            names: [],
             tasks: []
         )
         var random = SeededRandom(seed: 1)
         var session = DrillSession(
-            drills: DrillFactory.session(mode: .numbers, week: week, progress: Progress(), random: &random)
+            drills: DrillFactory.session(mode: .numbers, week: week, progress: WeekProgress(), random: &random)
         )
         var progress = Progress()
         while let drill = session.current {
             guard let answer = session.answer(drill.answer) else { break }
-            for event in answer.events { progress.apply(event) }
+            for event in answer.events { progress.apply(event, in: "2026-10-05") }
         }
         #expect(session.isFinished)
         #expect(progress.stars == DrillFactory.drillsPerSession)
@@ -92,10 +93,11 @@ import Testing
     /// Counting is its own skill: its choice count must follow its own history,
     /// not how well he recognises a spoken number.
     @Test func countingWidensOnItsOwnHistory() {
-        var listening = Progress()
+        var progress = Progress()
         for _ in 0..<25 {
-            listening.apply(.answered(key: "3", drill: .hearNumber, firstTry: true, correct: true))
+            progress.apply(.answered(key: "3", drill: .hearNumber, firstTry: true, correct: true), in: "2026-09-07")
         }
+        let listening = progress.week("2026-09-07")
         #expect(DrillFactory.choiceWidth(for: .hearNumber, progress: listening, poolSize: 10) == 4)
         #expect(DrillFactory.choiceWidth(for: .countObjects, progress: listening, poolSize: 10) == 3)
     }
