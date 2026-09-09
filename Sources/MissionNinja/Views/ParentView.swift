@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Behind a three second press on the belt badge. What he is getting right,
-/// where he is stuck, and which voice the app actually found.
+/// Behind a three second press on the belt badge. What he is getting right
+/// this week, where he is stuck, and which voice the app actually found.
 struct ParentView: View {
     let week: Week
+    let catalog: WeekCatalog
 
     @Environment(ProgressStore.self) private var store
     @Environment(Speaker.self) private var speaker
@@ -11,19 +12,23 @@ struct ParentView: View {
 
     @State private var confirmsReset = false
 
-    private var tracked: [Character] {
-        var seen: Set<Character> = []
-        return (week.letters.vowels.characters + week.numbers.digits.map { Character(String($0)) })
+    /// Strings, not characters: a week reaching 10 has no single character
+    /// form for it, and forcing one traps.
+    private var tracked: [String] {
+        var seen: Set<String> = []
+        return (week.letters.vowels.characters.map(String.init) + week.numbers.digits.map(String.init))
             .filter { seen.insert($0).inserted }
     }
 
     var body: some View {
         NavigationStack {
             List {
-                Section("Progression") {
-                    row("Ceinture", store.belt.name.capitalizedFirst)
-                    row("Étoiles", "\(store.stars)")
-                    row("Jours consécutifs", "\(store.streak())")
+                let thisWeek = store.thisWeek
+
+                Section("Cette semaine") {
+                    row("Ceinture", thisWeek.belt.name.capitalizedFirst)
+                    row("Étoiles", "\(thisWeek.stars)")
+                    row("Temps dans l'app", TimeLabel.spent(store.secondsThisWeek()))
                     if store.lostAPreviousDocument {
                         Text("Une progression enregistrée n'a pas pu être relue et a été mise de côté. Le compte d'étoiles est donc reparti de zéro.")
                             .font(Typography.caption)
@@ -31,41 +36,41 @@ struct ParentView: View {
                     }
                 }
 
-                Section("Par caractère, à l'écoute") {
-                    ForEach(tracked, id: \.self) { character in
-                        let record = store.progress.record(for: character)
-                        HStack {
-                            Text(String(character))
-                                .font(Typography.glyph(22))
-                                .frame(width: 30, alignment: .leading)
-                            if record.attempts == 0 {
-                                Text("jamais demandé")
-                                    .font(Typography.caption)
-                                    .foregroundStyle(.secondary)
-                            } else {
-                                Text("\(record.successes) sur \(record.attempts)")
-                                    .font(Typography.caption)
-                                Spacer()
-                                Text("\(Int(record.successRate * 100)) %")
-                                    .font(Typography.caption)
-                                    .foregroundStyle(record.successRate >= 0.8 ? Color.ninjaBamboo : .ninjaGold)
-                            }
+                Section("Depuis le début") {
+                    row("Étoiles", "\(store.stars)")
+                    row("Jours consécutifs", "\(store.streak())")
+                    NavigationLink("Bilan des semaines") {
+                        WeekSummaryView(catalog: catalog)
+                    }
+                    .font(Typography.body)
+                }
+
+                Section("Par caractère, à l'écoute, cette semaine") {
+                    ForEach(tracked, id: \.self) { key in
+                        listening(key, thisWeek.record(for: key), glyph: true)
+                    }
+                }
+
+                if !week.names.isEmpty {
+                    Section("Par prénom, cette semaine") {
+                        ForEach(week.names, id: \.self) { name in
+                            listening(name, thisWeek.record(for: name), glyph: false)
                         }
                     }
                 }
 
-                Section("Tracés") {
-                    ForEach(tracked, id: \.self) { character in
-                        let times = store.progress.timesTraced(character)
+                Section("Tracés, cette semaine") {
+                    ForEach(tracked, id: \.self) { key in
+                        let times = thisWeek.timesTraced(key)
                         if times > 0 {
-                            row(String(character), "\(store.progress.timesTracedCleanly(character)) propres sur \(times)")
+                            row(key, "\(thisWeek.timesTracedCleanly(key)) propres sur \(times)")
                         }
                     }
                 }
 
-                Section("Par exercice") {
+                Section("Par exercice, cette semaine") {
                     ForEach(DrillKind.allCases, id: \.self) { kind in
-                        let record = store.progress.record(for: kind)
+                        let record = thisWeek.record(for: kind)
                         row(kind.title, record.asked == 0 ? "jamais" : "\(record.solvedFirstTry) sur \(record.asked) du premier coup")
                     }
                 }
@@ -101,6 +106,26 @@ struct ParentView: View {
                     dismiss()
                 }
                 Button("Annuler", role: .cancel) {}
+            }
+        }
+    }
+
+    private func listening(_ label: String, _ record: CharacterRecord, glyph: Bool) -> some View {
+        HStack {
+            Text(label)
+                .font(glyph ? Typography.glyph(22) : Typography.body)
+                .frame(minWidth: 30, alignment: .leading)
+            if record.attempts == 0 {
+                Text("jamais demandé")
+                    .font(Typography.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Text("\(record.successes) sur \(record.attempts)")
+                    .font(Typography.caption)
+                Spacer()
+                Text("\(Int(record.successRate * 100)) %")
+                    .font(Typography.caption)
+                    .foregroundStyle(record.successRate >= 0.8 ? Color.ninjaBamboo : .ninjaGold)
             }
         }
     }

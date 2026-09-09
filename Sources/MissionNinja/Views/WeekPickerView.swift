@@ -1,11 +1,16 @@
 import SwiftUI
 
 /// The launch screen. The current week is one big button so he can start on
-/// his own; the other weeks sit below for when we want to go back over them.
+/// his own; the other weeks sit below for when we want to go back over them,
+/// and the week by week summary for the parent closes the list.
 struct WeekPickerView: View {
     let catalog: WeekCatalog
     let today: DayKey
     let choose: (Week) -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var swordAngle = MinifigBody.restingSwordAngle
+    @State private var twirling: Task<Void, Never>?
 
     private var current: Week? { catalog.current(on: today) }
     private var others: [Week] { catalog.weeks.filter { $0.id != current?.id } }
@@ -26,17 +31,43 @@ struct WeekPickerView: View {
                         }
                     }
                     if !others.isEmpty { archive }
+                    NavigationLink("Bilan des semaines") {
+                        WeekSummaryView(catalog: catalog)
+                    }
+                    .buttonStyle(NinjaButtonStyle(prominent: false))
                 }
                 .padding(20)
                 .frame(maxWidth: 620)
                 .frame(maxWidth: .infinity)
             }
         }
+        .onAppear(perform: twirl)
+        .onDisappear {
+            twirling?.cancel()
+            twirling = nil
+        }
+    }
+
+    /// The ninja plays with his katana while he waits: a full turn in the
+    /// hand to the other side, a breath, and back.
+    private func twirl() {
+        guard twirling == nil, !reduceMotion else { return }
+        twirling = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(1400))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeInOut(duration: 0.8)) {
+                    swordAngle = swordAngle == MinifigBody.restingSwordAngle
+                        ? MinifigBody.twirledSwordAngle
+                        : MinifigBody.restingSwordAngle
+                }
+            }
+        }
     }
 
     private var header: some View {
         VStack(spacing: 10) {
-            NinjaMascot(mood: .calm, size: 120, fullBody: true)
+            NinjaMascot(mood: .calm, size: 120, fullBody: true, swordAngle: swordAngle)
             Text("Mission Ninja")
                 .font(Typography.screenTitle)
                 .foregroundStyle(.ninjaCream)

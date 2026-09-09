@@ -68,6 +68,9 @@ private struct Surface: View {
 
                 if engine.needsStartTouch || engine.showsHint {
                     StartDot(at: engine.startPoint, side: side, pulsing: pulse && !reduceMotion)
+                    if !engine.startsWithDot {
+                        StartArrow(at: engine.startPoint, heading: engine.startHeading, side: side, pulsing: pulse && !reduceMotion)
+                    }
                 }
 
                 if engine.showsHint, !engine.isComplete {
@@ -235,6 +238,28 @@ private struct StartDot: View {
         }
             .scaleEffect(pulsing ? 1.35 : 1)
             .position(x: at.x * side, y: at.y * side)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
+/// Which way to go from the dot, before anything is drawn. A stroke that
+/// starts at the top of an o and one that starts at the top of a 1 leave the
+/// same dot in different directions, and the dot alone cannot say which.
+private struct StartArrow: View {
+    let at: UnitPoint2
+    let heading: UnitPoint2
+    let side: Double
+    let pulsing: Bool
+
+    var body: some View {
+        let reach = pulsing ? 38.0 : 30.0
+        Image(systemName: "arrow.right")
+            .font(.system(size: 22, weight: .heavy))
+            .foregroundStyle(.ninjaCream)
+            .shadow(color: Palette.ink.opacity(0.6).color, radius: 2)
+            .rotationEffect(.radians(atan2(heading.y, heading.x)))
+            .position(x: at.x * side + heading.x * reach, y: at.y * side + heading.y * reach)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
     }

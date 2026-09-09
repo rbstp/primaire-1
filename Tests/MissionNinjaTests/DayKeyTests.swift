@@ -30,4 +30,16 @@ import Testing
         #expect(DayKey(saturdayLate, calendar: calendar) == DayKey(year: 2026, month: 10, day: 31))
         #expect(DayKey(year: 2026, month: 10, day: 31).adding(days: 1, in: calendar) == DayKey(year: 2026, month: 11, day: 1))
     }
+
+    /// Weeks run Monday to Sunday like the lesson plan, even though a Quebec
+    /// calendar starts its weeks on Sunday.
+    @Test func findsTheMondayOfTheWeek() {
+        let calendar = Calendar(identifier: .gregorian)
+        let monday = DayKey(year: 2026, month: 9, day: 7)
+        #expect(monday.monday(in: calendar) == monday)
+        #expect(DayKey(year: 2026, month: 9, day: 8).monday(in: calendar) == monday)
+        #expect(DayKey(year: 2026, month: 9, day: 12).monday(in: calendar) == monday)
+        #expect(DayKey(year: 2026, month: 9, day: 13).monday(in: calendar) == monday)
+        #expect(DayKey(year: 2026, month: 9, day: 14).monday(in: calendar) == DayKey(year: 2026, month: 9, day: 14))
+    }
 }

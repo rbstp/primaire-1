@@ -3,6 +3,7 @@ import SwiftUI
 /// The week's home. Everything he can do sits on one screen, one tap away.
 struct DojoView: View {
     let week: Week
+    let catalog: WeekCatalog
     let changeWeek: () -> Void
 
     @Environment(ProgressStore.self) private var store
@@ -17,7 +18,7 @@ struct DojoView: View {
                 VStack(spacing: 18) {
                     BeltBadge(
                         belt: store.belt,
-                        stars: store.stars,
+                        stars: store.thisWeek.stars,
                         advance: store.beltAdvance,
                         streak: store.streak()
                     ) {
@@ -31,6 +32,15 @@ struct DojoView: View {
                     LazyVGrid(columns: [GridItem(spacing: 14), GridItem(spacing: 14)], spacing: 18) {
                         tile("Mode Lettres", "textformat.abc", .blue, .letters)
                         tile("Mode Chiffres", "number", .black, .numbers)
+                        if !week.names.isEmpty {
+                            tile("Mode Prénoms", "person.text.rectangle", .blue, .names)
+                            NavigationLink {
+                                NameBuildView(week: week)
+                            } label: {
+                                DojoTile(title: "Construis le prénom", symbol: "puzzlepiece.fill", tone: .black)
+                            }
+                            .buttonStyle(DojoTileStyle())
+                        }
                         NavigationLink {
                             LetterWallView(week: week)
                         } label: {
@@ -73,10 +83,17 @@ struct DojoView: View {
                 .frame(maxWidth: .infinity)
             }
         }
+        // The title is drawn in bricks; the plain one only feeds the back
+        // button of the screens pushed from here.
         .navigationTitle("Le dojo")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                BrickTitle(text: "Le dojo")
+            }
+        }
         .sheet(isPresented: $showsParentScreen) {
-            ParentView(week: week)
+            ParentView(week: week, catalog: catalog)
         }
     }
 

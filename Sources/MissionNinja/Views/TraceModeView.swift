@@ -39,6 +39,7 @@ struct TraceModeView: View {
         }
         .navigationTitle("Le tracé")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { store.markPractised() }
         .onDisappear { speaker.stop() }
     }
 

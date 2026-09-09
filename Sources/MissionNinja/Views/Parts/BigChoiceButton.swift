@@ -12,6 +12,7 @@ struct BigChoiceButton: View {
 
     let label: String
     var glyphSize: CGFloat = 74
+    var minHeight: CGFloat = 104
     var state: State = .idle
     var isEnabled = true
     let action: () -> Void
@@ -21,9 +22,11 @@ struct BigChoiceButton: View {
             Text(label)
                 .font(Typography.glyph(glyphSize))
                 .foregroundStyle(foreground)
-                .frame(maxWidth: .infinity, minHeight: 104)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, minHeight: minHeight)
         }
-        .buttonStyle(BrickButtonStyle(tone: tone, studs: 3, minHeight: 104, cornerRadius: 12, depth: 10))
+        .buttonStyle(BrickButtonStyle(tone: tone, studs: 3, minHeight: minHeight, cornerRadius: 12, depth: 10))
         .disabled(!isEnabled)
         .animation(.easeOut(duration: 0.18), value: state)
         .accessibilityLabel(label)

@@ -39,6 +39,14 @@ enum Pronunciation {
         Utterance(words[value] ?? String(value))
     }
 
+    /// A name as it is said in class. "Mme" on a card is read out in full,
+    /// and the few names the French voice mangles carry a phonetic spelling.
+    /// To be checked on a real device: the simulator has no voice to check with.
+    static func name(_ name: String) -> Utterance {
+        let text = name.replacingOccurrences(of: "Mme ", with: "Madame ")
+        return Utterance(text, ipa: nameSounds[name])
+    }
+
     static func isVowel(_ character: Character) -> Bool {
         "aeiouy".contains(Character(String(character).lowercased()))
     }
@@ -56,6 +64,9 @@ enum Pronunciation {
         case let .spokenNumber(value):
             let word = numberWord(value)
             return [word, word]
+        case let .spokenName(name):
+            let spoken = Pronunciation.name(name)
+            return [spoken, spoken]
         case .bricks:
             return [Utterance("Combien de briques vois-tu?")]
         }
@@ -71,6 +82,8 @@ enum Pronunciation {
             return [Utterance("C'était"), letterName(character)]
         case let .number(value):
             return [Utterance("C'était"), numberWord(value)]
+        case let .name(name):
+            return [Utterance("C'était"), Pronunciation.name(name)]
         }
     }
 
@@ -86,7 +99,14 @@ enum Pronunciation {
     private static let words: [Int: String] = [
         0: "zéro", 1: "un", 2: "deux", 3: "trois", 4: "quatre",
         5: "cinq", 6: "six", 7: "sept", 8: "huit", 9: "neuf",
-        10: "dix",
+        10: "dix", 11: "onze", 12: "douze", 13: "treize", 14: "quatorze",
+        15: "quinze", 16: "seize", 17: "dix-sept", 18: "dix-huit", 19: "dix-neuf",
+        20: "vingt",
+    ]
+
+    private static let nameSounds: [String: String] = [
+        "Hayden": "edɛn",
+        "Madison": "madisɔn",
     ]
 
     private static let names: [Character: Utterance] = [

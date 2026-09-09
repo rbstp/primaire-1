@@ -6,6 +6,8 @@ import SwiftUI
 struct AlphabetView: View {
     let week: Week
 
+    private static let columns = 5
+
     @Environment(Speaker.self) private var speaker
     @Environment(SoundEffects.self) private var effects
     @Environment(ProgressStore.self) private var store
@@ -48,21 +50,8 @@ struct AlphabetView: View {
                     .padding(.horizontal, 24)
 
                     if let run {
-                        LazyVGrid(columns: Array(repeating: GridItem(spacing: 10), count: 5), spacing: 10) {
-                            ForEach(run.order.indices, id: \.self) { position in
-                                let letter = run.order[position]
-                                Button { touch(letter) } label: {
-                                    AlphabetCell(
-                                        letter: letter,
-                                        isDone: run.isDone(letter),
-                                        isSinging: singingLetter == letter
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .disabled(singing != nil)
-                            }
-                        }
-                        .padding(.horizontal, 18)
+                        grid(run)
+                            .padding(.horizontal, 18)
                     }
 
                     Button(singing == nil ? "Chante avec moi" : "Arrête la chanson") {
@@ -87,11 +76,52 @@ struct AlphabetView: View {
         // A new order every time the section is opened.
         .onAppear {
             run = AlphabetRun(random: &random)
+            store.markPractised()
             sayExpected()
         }
         .onDisappear {
             stopSinging()
             speaker.stop()
+        }
+    }
+
+    /// Explicit rows rather than a grid, so the row holding the letter he is
+    /// looking for can light up after two misses.
+    private func grid(_ run: AlphabetRun) -> some View {
+        let columns = AlphabetView.columns
+        let rows = stride(from: 0, to: run.order.count, by: columns).map { start in
+            Array(run.order[start..<min(start + columns, run.order.count)])
+        }
+        let hinted = run.wantsHint ? run.expected.flatMap { run.order.firstIndex(of: $0) }.map { $0 / columns } : nil
+        return VStack(spacing: 10) {
+            ForEach(rows.indices, id: \.self) { row in
+                HStack(spacing: 10) {
+                    ForEach(rows[row], id: \.self) { letter in
+                        Button { touch(letter) } label: {
+                            AlphabetCell(
+                                letter: letter,
+                                isDone: run.isDone(letter),
+                                isSinging: singingLetter == letter
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(singing != nil)
+                    }
+                    ForEach(0..<(columns - rows[row].count), id: \.self) { _ in
+                        Color.clear.frame(maxWidth: .infinity, minHeight: 1)
+                    }
+                }
+                .padding(6)
+                .background {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Palette.azure.opacity(hinted == row ? 0.22 : 0).color)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Palette.azure.opacity(hinted == row ? 0.9 : 0).color, lineWidth: 2.5)
+                        )
+                }
+                .animation(.easeOut(duration: 0.3), value: hinted == row)
+            }
         }
     }
 

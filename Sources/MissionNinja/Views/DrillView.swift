@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// The letters and numbers modes, which are the same screen with different
-/// material. He switches between them here rather than going back to the dojo.
+/// The letters, numbers and names modes, which are the same screen with
+/// different material. He switches between them here rather than going back
+/// to the dojo.
 struct DrillView: View {
     let week: Week
     @Binding var mode: DrillFactory.Mode
@@ -45,7 +46,7 @@ struct DrillView: View {
             .frame(maxWidth: 620)
             .frame(maxWidth: .infinity)
         } else if runner?.isFinished == true {
-            DrillDoneView(stars: runner?.stars ?? 0, again: start, leave: { dismiss() })
+            RunDoneView(stars: runner?.stars ?? 0, again: start, leave: { dismiss() })
         } else {
             ProgressView().tint(.ninjaBlade)
         }
@@ -57,6 +58,7 @@ struct DrillView: View {
                 .padding(.top, spacing)
 
             ChoiceGrid(
+                kind: drill.kind,
                 choices: drill.choices,
                 state: runner.state(of:),
                 isEnabled: !runner.isWaiting,
@@ -75,6 +77,9 @@ struct DrillView: View {
         Picker("Mode", selection: $mode) {
             Text("Lettres").tag(DrillFactory.Mode.letters)
             Text("Chiffres").tag(DrillFactory.Mode.numbers)
+            if !week.names.isEmpty {
+                Text("Prénoms").tag(DrillFactory.Mode.names)
+            }
         }
         .pickerStyle(.segmented)
     }
@@ -100,7 +105,7 @@ private struct PromptView: View {
                 .multilineTextAlignment(.center)
 
             switch prompt {
-            case .spokenLetter, .spokenNumber:
+            case .spokenLetter, .spokenNumber, .spokenName:
                 Button(action: replay) {
                     Image(systemName: "speaker.wave.3.fill")
                         .font(.system(size: 44, weight: .bold))
@@ -120,22 +125,33 @@ private struct PromptView: View {
         switch prompt {
         case .spokenLetter: "Écoute, puis touche la bonne lettre."
         case let .spokenNumber(value): value <= 9 ? "Écoute, puis touche le bon chiffre." : "Écoute, puis touche le bon nombre."
+        case .spokenName: "Écoute, puis touche le bon prénom."
         case .bricks: "Combien de briques vois-tu?"
         }
     }
 }
 
 private struct ChoiceGrid: View {
+    let kind: DrillKind
     let choices: [DrillChoice]
     let state: (DrillChoice) -> BigChoiceButton.State
     let isEnabled: Bool
     let pick: (DrillChoice) -> Void
 
-    /// Two and three choices sit on one row, four go two by two. Anything else
-    /// leaves a hole where a tile should be.
-    private var perRow: Int { choices.count == 4 ? 2 : max(choices.count, 1) }
+    private var isNames: Bool { kind == .hearName }
 
-    private var glyphSize: CGFloat { perRow >= 3 ? 58 : 74 }
+    /// Names stack one per row so five can be read left to right. Two and
+    /// three glyphs sit on one row, four go two by two. Anything else leaves
+    /// a hole where a tile should be.
+    private var perRow: Int {
+        if isNames { return 1 }
+        return choices.count == 4 ? 2 : max(choices.count, 1)
+    }
+
+    private var glyphSize: CGFloat {
+        if isNames { return 34 }
+        return perRow >= 3 ? 58 : 74
+    }
 
     private var rows: [[DrillChoice]] {
         stride(from: 0, to: choices.count, by: perRow).map { start in
@@ -144,13 +160,14 @@ private struct ChoiceGrid: View {
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: isNames ? 10 : 14) {
             ForEach(rows.indices, id: \.self) { row in
                 HStack(spacing: 14) {
                     ForEach(rows[row], id: \.self) { choice in
                         BigChoiceButton(
                             label: choice.label,
                             glyphSize: glyphSize,
+                            minHeight: isNames ? 62 : 104,
                             state: state(choice),
                             isEnabled: isEnabled
                         ) {
@@ -189,37 +206,5 @@ struct BrickProgress: View {
         .accessibilityElement()
         .accessibilityLabel("Avancement")
         .accessibilityValue("\(done) sur \(total)")
-    }
-}
-
-private struct DrillDoneView: View {
-    let stars: Int
-    let again: () -> Void
-    let leave: () -> Void
-
-    /// The reward at the end of a run: one of the three little scenes, drawn
-    /// when the screen appears so the ending is not always the same.
-    @State private var celebration = Celebration.draw()
-
-    var body: some View {
-        VStack(spacing: 26) {
-            CelebrationView(kind: celebration)
-                .frame(maxHeight: 200)
-            Text("Entraînement terminé!")
-                .font(Typography.screenTitle)
-                .foregroundStyle(.ninjaCream)
-            Label("\(stars) étoiles gagnées", systemImage: "star.fill")
-                .font(Typography.counter)
-                .foregroundStyle(.ninjaGold)
-
-            VStack(spacing: 12) {
-                Button("Encore une fois", action: again)
-                    .buttonStyle(NinjaButtonStyle(prominent: true))
-                Button("Retour au dojo", action: leave)
-                    .buttonStyle(NinjaButtonStyle(prominent: false))
-            }
-            .padding(.horizontal, 32)
-        }
-        .padding(24)
     }
 }

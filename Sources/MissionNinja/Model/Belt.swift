@@ -1,18 +1,19 @@
 import Foundation
 
-/// The reward ladder. Stars only ever go up, so a belt is never lost.
+/// The reward ladder for one week. Every Monday starts back at white, so the
+/// thresholds are sized for five evenings of practice rather than a year.
 enum Belt: Int, CaseIterable, Codable, Sendable, Comparable {
     case white, yellow, orange, green, blue, brown, black
 
     var starsRequired: Int {
         switch self {
         case .white: 0
-        case .yellow: 25
-        case .orange: 60
-        case .green: 120
-        case .blue: 200
-        case .brown: 320
-        case .black: 500
+        case .yellow: 12
+        case .orange: 30
+        case .green: 55
+        case .blue: 85
+        case .brown: 120
+        case .black: 160
         }
     }
 

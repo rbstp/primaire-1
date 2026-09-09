@@ -44,6 +44,14 @@ struct DayKey: Codable, Hashable, Sendable, Comparable {
         return DayKey(moved, calendar: calendar)
     }
 
+    /// The Monday on or before this day. Weeks run Monday to Sunday like the
+    /// lesson plan, whatever the calendar says its first weekday is.
+    func monday(in calendar: Calendar) -> DayKey {
+        guard let date = date(in: calendar) else { return self }
+        let weekday = calendar.component(.weekday, from: date)
+        return adding(days: -((weekday + 5) % 7), in: calendar) ?? self
+    }
+
     static func < (lhs: DayKey, rhs: DayKey) -> Bool {
         (lhs.year, lhs.month, lhs.day) < (rhs.year, rhs.month, rhs.day)
     }

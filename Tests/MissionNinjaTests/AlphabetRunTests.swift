@@ -78,6 +78,36 @@ import Testing
         #expect(run.order != before)
     }
 
+    /// Two misses in a row light up the row holding the letter; a hit, or a
+    /// restart, puts the lights out.
+    @Test func hintsAfterTwoMissesInARow() {
+        var random = SeededRandom(seed: 10)
+        var run = AlphabetRun(random: &random)
+        _ = run.touch("m")
+        #expect(!run.wantsHint)
+        _ = run.touch("z")
+        #expect(run.wantsHint)
+        #expect(run.misses == 2)
+        _ = run.touch("a")
+        #expect(!run.wantsHint)
+        #expect(run.misses == 0)
+        _ = run.touch("m")
+        _ = run.touch("m")
+        run.restart(random: &random)
+        #expect(!run.wantsHint)
+    }
+
+    /// Tapping a letter already in the dragon is idle, not a wrong guess.
+    @Test func aFoundLetterDoesNotCountAsAMiss() {
+        var random = SeededRandom(seed: 12)
+        var run = AlphabetRun(random: &random)
+        _ = run.touch("a")
+        _ = run.touch("a")
+        _ = run.touch("a")
+        #expect(run.misses == 0)
+        #expect(!run.wantsHint)
+    }
+
     @Test func handlesAShortAlphabet() {
         var random = SeededRandom(seed: 9)
         var run = AlphabetRun(letters: ["a", "b"], random: &random)

@@ -9,12 +9,16 @@ enum DebugScreen: String {
     case dojo
     case letters
     case numbers
+    case names
+    case build
     case vowels
     case alphabet
     case trace
     case log
     case glyphs
     case scenes
+    case summary
+    case parent
 
     static var requested: DebugScreen? {
         guard let index = ProcessInfo.processInfo.arguments.firstIndex(of: "-screen"),

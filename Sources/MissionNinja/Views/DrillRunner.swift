@@ -50,7 +50,7 @@ final class DrillRunner {
 
     func begin() {
         session = DrillSession(
-            drills: DrillFactory.session(mode: mode, week: week, progress: store.progress, random: &random)
+            drills: DrillFactory.session(mode: mode, week: week, progress: store.thisWeek, random: &random)
         )
         shown = session.current
         store.markPractised()
