@@ -13,6 +13,9 @@ struct NinjaMascot: View {
     var size: CGFloat = 120
     /// The head alone, or the whole figure standing on its legs.
     var fullBody = false
+    /// Where the katana points, in degrees clockwise from straight up. Driven
+    /// from outside with withAnimation so the figure itself never moves.
+    var swordAngle = MinifigBody.restingSwordAngle
 
     var body: some View {
         if fullBody {
@@ -20,7 +23,7 @@ struct NinjaMascot: View {
             // the hood; the neck starts exactly where the hood ends.
             VStack(spacing: -size * 0.056) {
                 MinifigHead(mood: mood, size: size * 0.62)
-                MinifigBody(size: size * 0.62)
+                MinifigBody(size: size * 0.62, swordAngle: swordAngle)
             }
             .frame(width: size, height: size * 1.55)
             .accessibilityHidden(true)
@@ -117,7 +120,13 @@ struct MinifigHead: View {
 /// hips and legs are one silhouette so he reads as one figure, not a stack of
 /// parts.
 struct MinifigBody: View {
+    static let restingSwordAngle = 28.0
+    /// The guard pose, blade across the chest, reached the long way round
+    /// through the bottom so the twirl never sweeps across the face.
+    static let twirledSwordAngle = 300.0
+
     var size: CGFloat = 80
+    var swordAngle = MinifigBody.restingSwordAngle
 
     var body: some View {
         ZStack {
@@ -162,7 +171,7 @@ struct MinifigBody: View {
                 .overlay(Capsule().stroke(MinifigRim.paint.color, lineWidth: MinifigRim.width(size) * 0.7))
                 .frame(width: size * 0.09, height: size * 0.22)
         }
-        .rotationEffect(.degrees(28), anchor: .bottom)
+        .rotationEffect(.degrees(swordAngle), anchor: .bottom)
         .offset(x: size * 0.41, y: -size * 0.49)
     }
 
