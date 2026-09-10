@@ -159,8 +159,7 @@ private struct Slot: View {
         ZStack {
             if let letter {
                 Brick(tone: .blue, studs: 1, depth: 4, cornerRadius: 6) {
-                    Text(String(letter))
-                        .font(Typography.glyph(26))
+                    GlyphMark(letter, size: 26)
                         .foregroundStyle(.ninjaCream)
                         .frame(width: 36, height: 42)
                 }
@@ -188,8 +187,7 @@ private struct LetterTile: View {
 
     var body: some View {
         Brick(tone: isPlaced ? .night : .black, studs: 2, depth: 6, cornerRadius: 8, pressed: isPlaced) {
-            Text(String(letter))
-                .font(Typography.glyph(30))
+            GlyphMark(letter, size: 30)
                 .foregroundStyle(isPlaced ? Palette.cream.opacity(0.3).color : .ninjaCream)
                 .frame(maxWidth: .infinity, minHeight: 54)
         }

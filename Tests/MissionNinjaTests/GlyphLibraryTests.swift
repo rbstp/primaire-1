@@ -3,7 +3,7 @@ import Testing
 @testable import MissionNinja
 
 @Suite struct GlyphLibraryTests {
-    private let shipped: [Character] = Array("aeiouAEIOU0123456789")
+    private let shipped: [Character] = Array("aeéèiouAEIOU0123456789")
 
     @Test func coversEverythingTheWeekAsksToTrace() throws {
         let week = try #require(WeekCatalog.bundled().week(id: "2026-09-07"))
@@ -74,7 +74,7 @@ import Testing
 
     @Test func strokeCountsFollowHowTheyAreTaught() {
         let expected: [Character: Int] = [
-            "a": 2, "e": 1, "i": 2, "o": 1, "u": 2,
+            "a": 2, "e": 1, "é": 2, "è": 2, "i": 2, "o": 1, "u": 2,
             "A": 3, "E": 4, "I": 1, "O": 1, "U": 1,
             "0": 1, "1": 1, "2": 1, "3": 1, "4": 2,
             "5": 2, "6": 1, "7": 1, "8": 1, "9": 1,

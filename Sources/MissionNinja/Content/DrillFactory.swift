@@ -14,6 +14,7 @@ enum DrillFactory {
         case letters
         case numbers
         case names
+        case vowels
     }
 
     static func session(
@@ -26,6 +27,7 @@ enum DrillFactory {
         case .letters: letterSession(week: week, progress: progress, random: &random)
         case .numbers: numberSession(week: week, progress: progress, random: &random)
         case .names: nameSession(week: week, progress: progress, random: &random)
+        case .vowels: vowelSession(week: week, progress: progress, random: &random)
         }
     }
 
@@ -43,6 +45,40 @@ enum DrillFactory {
             let choices = choices(target: target, pool: pool, width: width, random: &random)
                 .map(DrillChoice.letter)
             drills.append(drill(id: index, kind: .hearLetter, prompt: .spokenLetter(target), choices: choices, answer: .letter(target)))
+        }
+        return drills
+    }
+
+    // MARK: Vowels
+
+    /// Two letters to choose between and one object to show. The dojo hides
+    /// its tile without them, so the game can never open on a run that is
+    /// already over.
+    static func hasVowelGame(_ week: Week) -> Bool {
+        let pool = week.letters.vowelsAndAccents
+        return pool.count > 1 && pool.contains { !PictureLibrary.words(startingWith: $0).isEmpty }
+    }
+
+    /// An object he can name, and the letter its name starts with. The letter
+    /// is drawn first, weighted like everywhere else, then a picture for it,
+    /// so a letter with three objects is not asked three times as often.
+    private static func vowelSession(week: Week, progress: WeekProgress, random: inout SeededRandom) -> [Drill] {
+        guard hasVowelGame(week) else { return [] }
+        let pool = week.letters.vowelsAndAccents
+        let answerable = pool.filter { !PictureLibrary.words(startingWith: $0).isEmpty }
+        let width = choiceWidth(for: .pictureLetter, progress: progress, poolSize: pool.count)
+        var drills: [Drill] = []
+        var previous: Character?
+        var shown: Set<String> = []
+        for index in 0..<drillsPerSession {
+            let target = pick(from: answerable, avoiding: previous, key: String.init, progress: progress, random: &random)
+            previous = target
+            let pictures = random.shuffled(PictureLibrary.words(startingWith: target))
+            guard let word = pictures.first(where: { !shown.contains($0.word) }) ?? pictures.first else { continue }
+            shown.insert(word.word)
+            let choices = choices(target: target, pool: pool, width: width, random: &random)
+                .map(DrillChoice.letter)
+            drills.append(drill(id: index, kind: .pictureLetter, prompt: .object(word.word), choices: choices, answer: .letter(target)))
         }
         return drills
     }

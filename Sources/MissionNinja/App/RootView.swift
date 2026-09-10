@@ -60,11 +60,12 @@ struct RootView: View {
         case .build: NameBuildView(week: week)
         case .summary: WeekSummaryView(catalog: catalog)
         case .parent: ParentView(week: week, catalog: catalog)
-        case .vowels: LetterWallView(week: week)
+        case .vowels: DrillView(week: week, mode: .constant(.vowels))
         case .alphabet: AlphabetView(week: week)
         case .trace: TraceModeView(week: week)
         case .log: MissionLogView(week: week)
         case .glyphs: GlyphProofView()
+        case .pictures: PictureProofView()
         case .scenes: SceneProofView()
         }
     }
