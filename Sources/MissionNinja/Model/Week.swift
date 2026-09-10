@@ -74,6 +74,19 @@ struct LetterPlan: Codable, Equatable, Sendable {
     let alphabet: Bool
 
     static let frenchAlphabet: [Character] = Array("abcdefghijklmnopqrstuvwxyz")
+
+    /// The accents the class teaches with a vowel, as letters of their own.
+    static let accents: [Character: [Character]] = ["e": ["é", "è"]]
+
+    /// What the picture game offers: the week's vowels, each followed by its
+    /// accents. Telling é from è from e is part of the exercise, and a week
+    /// that already lists an accent does not get it twice.
+    var vowelsAndAccents: [Character] {
+        var seen: Set<Character> = []
+        return vowels.characters
+            .flatMap { [$0] + (LetterPlan.accents[$0] ?? []) }
+            .filter { seen.insert($0).inserted }
+    }
 }
 
 struct NumberPlan: Codable, Equatable, Sendable {

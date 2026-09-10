@@ -61,6 +61,54 @@ private func answered(_ drill: Drill) -> Int? {
         }
     }
 
+    @Test func buildsAFullVowelPictureSession() {
+        var random = SeededRandom(seed: 21)
+        let drills = DrillFactory.session(mode: .vowels, week: week(), progress: WeekProgress(), random: &random)
+        #expect(drills.count == DrillFactory.drillsPerSession)
+        #expect(drills.allSatisfy { $0.kind == .pictureLetter })
+    }
+
+    /// The answer is the letter the object's own name starts with, accent
+    /// included, and the decoys are letters of the week.
+    @Test func aPictureIsAnsweredByTheLetterItsWordStartsWith() {
+        var random = SeededRandom(seed: 22)
+        let plan = week()
+        let allowed = Set(plan.letters.vowelsAndAccents.map(DrillChoice.letter))
+        let drills = DrillFactory.session(mode: .vowels, week: plan, progress: WeekProgress(), random: &random)
+        for drill in drills {
+            guard case let .object(word) = drill.prompt else {
+                Issue.record("\(drill.id) n'a pas d'objet")
+                continue
+            }
+            let picture = PictureLibrary.word(word)
+            #expect(picture != nil, "\(word)")
+            #expect(drill.answer == .letter(picture?.letter ?? " "))
+            #expect(Set(drill.choices).isSubset(of: allowed))
+        }
+    }
+
+    /// The accents are offered even though no object starts with è: telling
+    /// it from é is the exercise.
+    @Test func offersTheAccentsOfTheWeeksVowels() {
+        var random = SeededRandom(seed: 23)
+        let drills = DrillFactory.session(mode: .vowels, week: week(), progress: WeekProgress(), random: &random)
+        let offered = Set(drills.flatMap(\.choices))
+        #expect(offered.contains(.letter("é")) || offered.contains(.letter("è")))
+    }
+
+    /// The dojo asks the same question before it shows the tile, so a week
+    /// without the material never opens on a run that is already over.
+    @Test func hasNoVowelSessionWithoutTheMaterial() {
+        var random = SeededRandom(seed: 24)
+        for vowels in [GlyphList(["z", "w"]), GlyphList(["a"])] {
+            let plan = week(vowels: vowels)
+            #expect(!DrillFactory.hasVowelGame(plan))
+            let drills = DrillFactory.session(mode: .vowels, week: plan, progress: WeekProgress(), random: &random)
+            #expect(drills.isEmpty)
+        }
+        #expect(DrillFactory.hasVowelGame(week()))
+    }
+
     @Test func distractorsStayInsideTheWeek() {
         var random = SeededRandom(seed: 3)
         let plan = week(vowels: ["a", "e", "i"])

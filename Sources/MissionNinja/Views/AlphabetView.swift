@@ -16,6 +16,7 @@ struct AlphabetView: View {
     @State private var random = SeededRandom.fresh()
     @State private var singing: Task<Void, Never>?
     @State private var singingLetter: Character?
+    @State private var starBursts = 0
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -70,6 +71,8 @@ struct AlphabetView: View {
                 .frame(maxWidth: 620)
                 .frame(maxWidth: .infinity)
             }
+            StarBurst(trigger: starBursts)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationTitle("L'alphabet")
         .navigationBarTitleDisplayMode(.inline)
@@ -139,22 +142,32 @@ struct AlphabetView: View {
         speaker.say(Pronunciation.script(for: .spokenLetter(expected)))
     }
 
+    /// A star per letter found, like every other exercise: the whole dragon
+    /// used to pay a single one, which made the longest game on the dojo the
+    /// one that moved the belt the least. A letter pays once per visit, so
+    /// finding the a and reshuffling is not a star every second tap.
     private func touch(_ letter: Character) {
         guard var current = run else { return }
-        let right = current.touch(letter)
+        let outcome = current.touch(letter)
         run = current
-        guard right else {
+        switch outcome {
+        case .idle:
+            effects.play(.tap)
+            speaker.say(Pronunciation.letterName(letter))
+        case let .missed(expected):
             effects.play(.wrong)
+            store.apply(.answered(key: String(expected), drill: .alphabetOrder, firstTry: false, correct: false))
             speaker.say([Utterance("C'est le"), Pronunciation.letterName(letter)])
-            return
-        }
-        effects.play(.snap)
-        if current.isComplete {
-            effects.play(.belt)
-            speaker.say(Pronunciation.praise(0))
-            store.apply(.answered(key: String(letter), drill: .alphabetOrder, firstTry: true, correct: true))
-        } else {
-            sayExpected()
+        case let .found(found, pays):
+            effects.play(.snap)
+            store.apply(.answered(key: String(found), drill: .alphabetOrder, firstTry: pays, correct: true))
+            if current.isComplete {
+                effects.play(.belt)
+                starBursts += 1
+                speaker.say(Pronunciation.praise(0))
+            } else {
+                sayExpected()
+            }
         }
     }
 
@@ -195,8 +208,7 @@ private struct AlphabetCell: View {
 
     var body: some View {
         Brick(tone: tone, studs: 2, depth: 5, cornerRadius: 7, pressed: isDone) {
-            Text(String(letter))
-                .font(Typography.glyph(28))
+            GlyphMark(letter, size: 28)
                 .foregroundStyle(isDone ? Palette.cream.opacity(0.45).color : .ninjaCream)
                 .frame(maxWidth: .infinity, minHeight: 50)
         }

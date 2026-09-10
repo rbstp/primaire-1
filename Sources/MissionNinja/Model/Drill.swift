@@ -6,6 +6,7 @@ enum DrillKind: String, CaseIterable, Codable, Sendable {
     case hearName
     case buildName
     case countObjects
+    case pictureLetter
     case alphabetOrder
     case trace
 
@@ -16,6 +17,7 @@ enum DrillKind: String, CaseIterable, Codable, Sendable {
         case .hearName: "Trouve le prénom"
         case .buildName: "Construis le prénom"
         case .countObjects: "Compte les briques"
+        case .pictureLetter: "Trouve la première lettre"
         case .alphabetOrder: "L'alphabet dans l'ordre"
         case .trace: "Le tracé"
         }
@@ -29,6 +31,9 @@ enum DrillPrompt: Equatable, Sendable {
     case spokenNumber(Int)
     case spokenName(String)
     case bricks(Int)
+    /// An object drawn in bricks, named by its word. The word is spoken and
+    /// never written: on screen it would hand him the letter he is looking for.
+    case object(String)
 }
 
 enum DrillChoice: Equatable, Hashable, Sendable {

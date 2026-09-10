@@ -100,8 +100,7 @@ struct TraceModeView: View {
                     attempt += 1
                 } label: {
                     Brick(tone: position == index ? .azure : .black, studs: 2, depth: 5, cornerRadius: 7, pressed: position == index) {
-                        Text(String(glyphs[position]))
-                            .font(Typography.glyph(24))
+                        GlyphMark(glyphs[position], size: 24)
                             .foregroundStyle(position == index ? .ninjaInk : .ninjaCream)
                             .frame(width: 44, height: 40)
                     }

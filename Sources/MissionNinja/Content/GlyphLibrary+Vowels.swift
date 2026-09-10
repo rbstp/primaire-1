@@ -4,7 +4,7 @@ import Foundation
 /// the pen goes.
 extension GlyphLibrary {
     static let vowels: [GlyphSpec] = [
-        lowerA, lowerE, lowerI, lowerO, lowerU,
+        lowerA, lowerE, lowerEAcute, lowerEGrave, lowerI, lowerO, lowerU,
         upperA, upperE, upperI, upperO, upperU,
     ]
 
@@ -36,6 +36,21 @@ extension GlyphLibrary {
             .curve(to: UnitPoint2(x: 0.68, y: 0.76),
                    control1: UnitPoint2(x: 0.59, y: 0.86),
                    control2: UnitPoint2(x: 0.65, y: 0.82)),
+        ]),
+    ])
+
+    /// The e first, then the accent as its own flick above it. Which way the
+    /// pen goes on an accent varies from one school to the next, like the 4
+    /// and the 5 do, so both follow the reading direction here.
+    private static let lowerEAcute = GlyphSpec(character: "é", strokes: lowerE.strokes + [
+        GlyphStroke(start: UnitPoint2(x: 0.42, y: 0.38), segments: [
+            .line(to: UnitPoint2(x: 0.58, y: 0.24)),
+        ]),
+    ])
+
+    private static let lowerEGrave = GlyphSpec(character: "è", strokes: lowerE.strokes + [
+        GlyphStroke(start: UnitPoint2(x: 0.38, y: 0.24), segments: [
+            .line(to: UnitPoint2(x: 0.54, y: 0.38)),
         ]),
     ])
 

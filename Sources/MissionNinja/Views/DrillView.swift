@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// The letters, numbers and names modes, which are the same screen with
-/// different material. He switches between them here rather than going back
-/// to the dojo.
+/// The listening and picture modes, which are the same screen with different
+/// material. Letters, numbers and names sit side by side and he switches
+/// between them here rather than going back to the dojo; the vowel pictures
+/// are their own tile, so they come with no switch.
 struct DrillView: View {
     let week: Week
     @Binding var mode: DrillFactory.Mode
@@ -22,7 +23,7 @@ struct DrillView: View {
                 StarBurst(trigger: runner.starBursts)
             }
         }
-        .navigationTitle("Entraînement")
+        .navigationTitle(mode == .vowels ? "Les voyelles" : "Entraînement")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: start)
         .onChange(of: mode) { start() }
@@ -32,8 +33,10 @@ struct DrillView: View {
     @ViewBuilder private var content: some View {
         if let runner, let drill = runner.shown {
             VStack(spacing: 14) {
-                modePicker
-                    .padding(.horizontal, 20)
+                if mode != .vowels {
+                    modePicker
+                        .padding(.horizontal, 20)
+                }
                 BrickProgress(done: runner.settled, total: runner.total)
                     .padding(.horizontal, 20)
 
@@ -115,6 +118,17 @@ private struct PromptView: View {
             case let .bricks(count):
                 BrickCluster(count: count, seed: seed)
                     .padding(.vertical, 6)
+            case let .object(word):
+                if let picture = PictureLibrary.word(word)?.picture {
+                    BrickPictureView(picture: picture)
+                        .frame(maxHeight: 210)
+                    Button(action: replay) {
+                        Image(systemName: "speaker.wave.3.fill")
+                            .font(.system(size: 26, weight: .bold))
+                    }
+                    .buttonStyle(StudButtonStyle(diameter: 66))
+                    .accessibilityLabel("Réécouter le mot")
+                }
             }
         }
         .padding(.horizontal, 24)
@@ -127,6 +141,7 @@ private struct PromptView: View {
         case let .spokenNumber(value): value <= 9 ? "Écoute, puis touche le bon chiffre." : "Écoute, puis touche le bon nombre."
         case .spokenName: "Écoute, puis touche le bon prénom."
         case .bricks: "Combien de briques vois-tu?"
+        case .object: "Quelle lettre commence ce mot?"
         }
     }
 }
@@ -168,6 +183,7 @@ private struct ChoiceGrid: View {
                             label: choice.label,
                             glyphSize: glyphSize,
                             minHeight: isNames ? 62 : 104,
+                            drawsGlyph: !isNames,
                             state: state(choice),
                             isEnabled: isEnabled
                         ) {

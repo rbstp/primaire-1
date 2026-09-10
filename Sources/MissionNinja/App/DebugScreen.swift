@@ -1,10 +1,10 @@
 #if DEBUG
 import SwiftUI
 
-/// Jump straight to a screen with `-screen <name>` at launch, and read the
-/// glyph library with `-screen glyphs`. Twenty two glyphs cannot be proofread
-/// any other way: the debug sheet shows each one with its stroke order and
-/// direction.
+/// Jump straight to a screen with `-screen <name>` at launch. The drawn
+/// material is proofread the same way: `-screen glyphs` shows every letter
+/// with its stroke order and direction, `-screen pictures` every object of the
+/// vowel game with the word it stands for.
 enum DebugScreen: String {
     case dojo
     case letters
@@ -16,6 +16,7 @@ enum DebugScreen: String {
     case trace
     case log
     case glyphs
+    case pictures
     case scenes
     case summary
     case parent
@@ -51,6 +52,32 @@ struct SceneProofView: View {
             }
         }
         .navigationTitle("Relecture des scènes")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// Every object of the vowel game with its word, so a mosaic that does not
+/// read as what it is can be spotted without playing.
+struct PictureProofView: View {
+    var body: some View {
+        ZStack {
+            Baseplate().ignoresSafeArea()
+            ScrollView {
+                LazyVGrid(columns: Array(repeating: GridItem(spacing: 10), count: 3), spacing: 14) {
+                    ForEach(PictureLibrary.words) { word in
+                        VStack(spacing: 6) {
+                            BrickPictureView(picture: word.picture)
+                                .frame(height: 96)
+                            Text(word.word)
+                                .font(Typography.caption)
+                                .foregroundStyle(Palette.cream.opacity(0.7).color)
+                        }
+                    }
+                }
+                .padding(14)
+            }
+        }
+        .navigationTitle("Relecture des objets")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

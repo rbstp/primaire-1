@@ -41,12 +41,17 @@ struct DojoView: View {
                             }
                             .buttonStyle(DojoTileStyle())
                         }
-                        NavigationLink {
-                            LetterWallView(week: week)
-                        } label: {
-                            DojoTile(title: "Les voyelles", symbol: "waveform", tone: .blue)
+                        if DrillFactory.hasVowelGame(week) {
+                            NavigationLink {
+                                DrillView(week: week, mode: .constant(.vowels))
+                            } label: {
+                                DojoTile(title: "Les voyelles", symbol: nil, tone: .blue) {
+                                    BrickPictureView(picture: PictureLibrary.dojo.picture)
+                                        .frame(height: 64)
+                                }
+                            }
+                            .buttonStyle(DojoTileStyle())
                         }
-                        .buttonStyle(DojoTileStyle())
                         if week.letters.alphabet {
                             NavigationLink {
                                 AlphabetView(week: week)

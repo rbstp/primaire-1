@@ -30,15 +30,15 @@ import Testing
         var run = AlphabetRun(random: &random)
         #expect(run.expected == "a")
         let accepted = run.touch("a")
-        #expect(accepted)
+        #expect(accepted == .found("a", pays: true))
         #expect(run.expected == "b")
     }
 
     @Test func aWrongLetterCostsNothing() {
         var random = SeededRandom(seed: 3)
         var run = AlphabetRun(random: &random)
-        let accepted = run.touch("m")
-        #expect(!accepted)
+        let refused = run.touch("m")
+        #expect(refused == .missed("a"))
         #expect(run.reached == 0)
         #expect(run.expected == "a")
     }
@@ -59,13 +59,13 @@ import Testing
         var run = AlphabetRun(random: &random)
         for letter in LetterPlan.frenchAlphabet {
             let accepted = run.touch(letter)
-            #expect(accepted, "\(letter) refusé")
+            #expect(accepted == .found(letter, pays: true), "\(letter) refusé")
         }
         #expect(run.isComplete)
         #expect(run.expected == nil)
         #expect(run.advance == 1)
         let afterEnd = run.touch("a")
-        #expect(!afterEnd)
+        #expect(afterEnd == .idle)
     }
 
     @Test func restartingReshufflesAndClearsProgress() {
@@ -97,13 +97,50 @@ import Testing
         #expect(!run.wantsHint)
     }
 
+    /// The star follows the same rule as everywhere else: only a letter found
+    /// without a miss before it pays.
+    @Test func onlyPaysForALetterFoundWithoutAMiss() {
+        var random = SeededRandom(seed: 13)
+        var run = AlphabetRun(random: &random)
+        let missed = run.touch("k")
+        #expect(missed == .missed("a"))
+        let found = run.touch("a")
+        #expect(found == .found("a", pays: false))
+        let next = run.touch("b")
+        #expect(next == .found("b", pays: true))
+    }
+
+    /// Otherwise finding the a and reshuffling pays a star every second tap.
+    @Test func aLetterOnlyPaysOncePerVisit() {
+        var random = SeededRandom(seed: 14)
+        var run = AlphabetRun(random: &random)
+        let first = run.touch("a")
+        #expect(first == .found("a", pays: true))
+        run.restart(random: &random)
+        let again = run.touch("a")
+        #expect(again == .found("a", pays: false))
+    }
+
+    /// A letter found after a miss is marked all the same, or the next
+    /// shuffle would pay for it.
+    @Test func aLetterFoundAfterAMissNeverPaysLater() {
+        var random = SeededRandom(seed: 15)
+        var run = AlphabetRun(random: &random)
+        _ = run.touch("k")
+        let found = run.touch("a")
+        #expect(found == .found("a", pays: false))
+        run.restart(random: &random)
+        let again = run.touch("a")
+        #expect(again == .found("a", pays: false))
+    }
+
     /// Tapping a letter already in the dragon is idle, not a wrong guess.
     @Test func aFoundLetterDoesNotCountAsAMiss() {
         var random = SeededRandom(seed: 12)
         var run = AlphabetRun(random: &random)
         _ = run.touch("a")
-        _ = run.touch("a")
-        _ = run.touch("a")
+        let again = run.touch("a")
+        #expect(again == .idle)
         #expect(run.misses == 0)
         #expect(!run.wantsHint)
     }

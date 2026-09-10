@@ -20,32 +20,18 @@ import Testing
 
     @Test func namesTheUppercaseTheSameWay() {
         #expect(Pronunciation.letterName("A") == Pronunciation.letterName("a"))
-        #expect(Pronunciation.exampleWords(for: "Y") == Pronunciation.exampleWords(for: "y"))
+        #expect(Pronunciation.letterName("Y") == Pronunciation.letterName("y"))
+    }
+
+    /// In first grade é and è are letters of their own, named in full.
+    @Test func namesTheAccentsTheWayTheClassDoes() {
+        #expect(Pronunciation.letterName("é").text == "e accent aigu")
+        #expect(Pronunciation.letterName("è").text == "e accent grave")
+        #expect(Pronunciation.correction(.letter("é")).last?.text == "e accent aigu")
     }
 
     @Test func namesYTheWayTheClassDoes() {
         #expect(Pronunciation.letterName("y").text == "i grec")
-    }
-
-    /// Four different words per vowel, each one starting with the letter,
-    /// accent or not, so the wall never says "y fait i" to a child for whom
-    /// that means nothing.
-    @Test func givesFourExampleWordsStartingWithTheVowel() {
-        for vowel in Array("aeiouy") {
-            let words = Pronunciation.exampleWords(for: vowel)
-            #expect(words.count == 4, "\(vowel) a \(words.count) mots")
-            #expect(Set(words).count == words.count, "\(vowel) répète un mot")
-            for word in words {
-                let first = word.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_CA")).first
-                #expect(first == vowel, "\(word) ne commence pas par \(vowel)")
-            }
-        }
-    }
-
-    /// The word stands alone, so no liaison can glue a consonant onto it.
-    @Test func introducesALetterWithAWordKeptApart() {
-        let script = Pronunciation.introduction(of: "e", word: "étoile")
-        #expect(script.map(\.text) == ["La lettre e, comme dans", "étoile"])
     }
 
     @Test func knowsTheVowels() {
@@ -98,6 +84,13 @@ import Testing
         #expect(Pronunciation.script(for: .spokenLetter("h")).first?.text == "La lettre hache")
     }
 
+    /// The object is named twice and nothing else is said: the picture is the
+    /// question, and writing the word would give away its first letter.
+    @Test func saysTheObjectTwice() {
+        let script = Pronunciation.script(for: .object("abeille"))
+        #expect(script.map(\.text) == ["abeille", "abeille"])
+    }
+
     @Test func asksTheCountingQuestionInFrench() {
         let script = Pronunciation.script(for: .bricks(4))
         #expect(script.count == 1)
@@ -117,7 +110,7 @@ import Testing
     }
 
     @Test func fallsBackToTheCharacterItself() {
-        #expect(Pronunciation.letterName("é").text == "é")
+        #expect(Pronunciation.letterName("ß").text == "ß")
         #expect(Pronunciation.numberWord(42).text == "42")
         #expect(Pronunciation.name("Dalya").text == "Dalya")
     }

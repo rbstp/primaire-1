@@ -7,10 +7,22 @@ struct AlphabetRun: Equatable, Sendable {
     /// that narrows the search without handing over the answer.
     static let hintAfterMisses = 2
 
+    /// What a tap did. A letter already in the dragon is idle: he is playing
+    /// with what he built, not guessing.
+    enum Touch: Equatable, Sendable {
+        case found(Character, pays: Bool)
+        case missed(Character)
+        case idle
+    }
+
     let letters: [Character]
     let order: [Character]
     private(set) var reached = 0
     private(set) var misses = 0
+    /// Letters that have already paid a star since the screen opened. A
+    /// restart reshuffles but keeps them: without that, finding the a and
+    /// restarting pays a star every second tap.
+    private(set) var rewarded: Set<Character> = []
 
     init(letters: [Character] = LetterPlan.frenchAlphabet, random: inout SeededRandom) {
         self.letters = letters
@@ -27,20 +39,27 @@ struct AlphabetRun: Equatable, Sendable {
         return position < reached
     }
 
-    /// Returns whether that was the letter we were waiting for. A wrong tap
-    /// costs nothing but the sound.
-    mutating func touch(_ letter: Character) -> Bool {
+    /// A wrong tap costs nothing but the sound. The outcome carries the letter
+    /// so the screen can file a star, or file the miss against the letter he
+    /// was looking for rather than the one he hit.
+    mutating func touch(_ letter: Character) -> Touch {
+        guard let expected else { return .idle }
         guard letter == expected else {
-            // A letter already in the dragon is a tap, not a wrong guess.
-            if !isComplete, !isDone(letter) { misses += 1 }
-            return false
+            if isDone(letter) { return .idle }
+            misses += 1
+            return .missed(expected)
         }
+        // Marked whether it pays or not, so a letter found after a miss
+        // cannot come back and pay on the next shuffle.
+        let pays = rewarded.insert(letter).inserted && misses == 0
         reached += 1
         misses = 0
-        return true
+        return .found(letter, pays: pays)
     }
 
     mutating func restart(random: inout SeededRandom) {
+        let paid = rewarded
         self = AlphabetRun(letters: letters, random: &random)
+        rewarded = paid
     }
 }
