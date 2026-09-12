@@ -77,11 +77,24 @@ import Testing
             "a": 2, "e": 1, "é": 2, "è": 2, "i": 2, "o": 1, "u": 2,
             "A": 3, "E": 4, "I": 1, "O": 1, "U": 1,
             "0": 1, "1": 1, "2": 1, "3": 1, "4": 2,
-            "5": 2, "6": 1, "7": 1, "8": 1, "9": 1,
+            "5": 1, "6": 1, "7": 1, "8": 1, "9": 1,
         ]
         for (character, count) in expected {
             #expect(GlyphLibrary.glyph(for: character)?.strokes.count == count, "\(character)")
         }
+    }
+
+    /// The class writes the 5 in one movement from the top right, and starts
+    /// the 4 on the left, away from the downstroke.
+    @Test func startsTheDigitsWhereTheClassStartsThem() throws {
+        let five = try #require(GlyphLibrary.glyph(for: "5")?.strokes.first)
+        #expect(five.first.x > 0.6)
+        #expect(five.first.y < 0.2)
+        #expect(five.last.y > 0.8)
+
+        let four = try #require(GlyphLibrary.glyph(for: "4"))
+        #expect(four.strokes[0].first.x < four.strokes[1].first.x)
+        #expect(abs(four.strokes[0].first.x - four.strokes[0].points[4].x) < 0.02)
     }
 
     /// The o and the 0 must come back to where they started, or the loop is

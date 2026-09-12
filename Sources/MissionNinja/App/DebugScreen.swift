@@ -6,10 +6,15 @@ import SwiftUI
 /// with its stroke order and direction, `-screen pictures` every object of the
 /// vowel game with the word it stands for.
 enum DebugScreen: String {
+    case subjects
+    case weeks
+    case francais
+    case maths
     case dojo
     case letters
     case numbers
     case names
+    case words
     case build
     case vowels
     case alphabet
@@ -22,10 +27,17 @@ enum DebugScreen: String {
     case parent
 
     static var requested: DebugScreen? {
-        guard let index = ProcessInfo.processInfo.arguments.firstIndex(of: "-screen"),
-              let name = ProcessInfo.processInfo.arguments[safe: index + 1]
-        else { return nil }
+        guard let name = value(of: "-screen") else { return nil }
         return DebugScreen(rawValue: name)
+    }
+
+    /// `-screen dojo -unit fr-12` opens a block of the year's plan instead of
+    /// the current week, so a block can be proofread without scrolling to it.
+    static var requestedUnit: String? { value(of: "-unit") }
+
+    private static func value(of flag: String) -> String? {
+        guard let index = ProcessInfo.processInfo.arguments.firstIndex(of: flag) else { return nil }
+        return ProcessInfo.processInfo.arguments[safe: index + 1]
     }
 }
 

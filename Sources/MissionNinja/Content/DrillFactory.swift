@@ -14,7 +14,28 @@ enum DrillFactory {
         case letters
         case numbers
         case names
+        case words
         case vowels
+
+        var title: String {
+            switch self {
+            case .letters: "Lettres"
+            case .numbers: "Chiffres"
+            case .names: "Prénoms"
+            case .words: "Mots"
+            case .vowels: "Voyelles"
+            }
+        }
+    }
+
+    /// The modes a week has material for, in the order the picker shows them.
+    static func modes(for week: Week) -> [Mode] {
+        var modes: [Mode] = []
+        if week.hasLetters { modes.append(.letters) }
+        if week.hasNumbers { modes.append(.numbers) }
+        if week.hasWords { modes.append(.words) }
+        if week.names.count > 1 { modes.append(.names) }
+        return modes
     }
 
     static func session(
@@ -27,6 +48,7 @@ enum DrillFactory {
         case .letters: letterSession(week: week, progress: progress, random: &random)
         case .numbers: numberSession(week: week, progress: progress, random: &random)
         case .names: nameSession(week: week, progress: progress, random: &random)
+        case .words: wordSession(week: week, progress: progress, random: &random)
         case .vowels: vowelSession(week: week, progress: progress, random: &random)
         }
     }
@@ -165,6 +187,27 @@ enum DrillFactory {
             let choices = choices(target: target, pool: pool, width: width, random: &random)
                 .map(DrillChoice.name)
             drills.append(drill(id: index, kind: .hearName, prompt: .spokenName(target), choices: choices, answer: .name(target)))
+        }
+        return drills
+    }
+
+    // MARK: Words
+
+    /// The teacher's own "Oreille ouvre-toi": the word is said, its label sits
+    /// on the table among others from the same unit, and he points at it.
+    /// Never read out loud by him, so it asks nothing he cannot do yet.
+    private static func wordSession(week: Week, progress: WeekProgress, random: inout SeededRandom) -> [Drill] {
+        let pool = week.words.all
+        guard week.hasWords else { return [] }
+        let width = min(choiceWidth(for: .hearWord, progress: progress, poolSize: pool.count), pool.count)
+        var drills: [Drill] = []
+        var previous: String?
+        for index in 0..<drillsPerSession {
+            let target = pick(from: pool, avoiding: previous, key: { $0 }, progress: progress, random: &random)
+            previous = target
+            let choices = choices(target: target, pool: pool, width: width, random: &random)
+                .map(DrillChoice.word)
+            drills.append(drill(id: index, kind: .hearWord, prompt: .spokenWord(target), choices: choices, answer: .word(target)))
         }
         return drills
     }

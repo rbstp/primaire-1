@@ -1,6 +1,8 @@
 # Mission Ninja
 
-Une app d'entraînement pour la 1re année, à l'école Notre-Dame-de-La-Paix. L'enseignante distribue un plan de leçons par semaine; l'app en prend la partie répétitive et la rend jouable: reconnaître les voyelles et leur bruit, chanter l'alphabet, lire les chiffres et les nombres, compter par groupes de cinq, reconnaître et construire le prénom des amis de la classe, et écrire les lettres au doigt. Le reste du plan, celui qui se fait sur papier, se coche dans le carnet.
+Une app d'entraînement pour la 1re année, à l'école Notre-Dame-de-La-Paix. L'enseignante distribue un plan de leçons par semaine; l'app en prend la partie répétitive et la rend jouable: reconnaître les voyelles et leur bruit, chanter l'alphabet, lire les chiffres et les nombres, compter par groupes de cinq, trouver les mots de la semaine à l'oreille, reconnaître et construire le prénom des amis de la classe, et écrire les lettres au doigt. Le reste du plan, celui qui se fait sur papier, se coche dans le carnet.
+
+À l'ouverture, deux chemins: la semaine en cours, et tout le cursus de l'année, en français comme en mathématiques. Le cursus sert quand la feuille de la semaine n'est pas encore arrivée, ou quand on veut revenir sur un bloc passé.
 
 Thème ninja et blocs de construction, bleu et noir, tout en français canadien. Chaque bouton est une brique qui s'enfonce quand on appuie, la mascotte est un petit ninja à cagoule avec son katana, et chaque lettre de l'alphabet trouvée pose une brique d'un dragon que le ninja combat une fois fini. Chaque entraînement terminé se célèbre par une petite scène animée: le dragon, une pile de briques abattue au shuriken, ou une tour à escalader. Une voix dit chaque consigne, parce qu'il ne lit pas encore. Les étoiles gagnées font monter les ceintures, de la blanche à la noire, et chaque lundi repart à blanc.
 
@@ -37,7 +39,8 @@ Sources/MissionNinja/
   Audio/      synthèse des effets sonores
   Theme/      palette, teintes de brique, typographie
   Views/      les écrans et leurs composants, dont la brique et le dragon
-Resources/Weeks/   un fichier JSON par semaine
+Resources/Weeks/        un fichier JSON par semaine
+Resources/Curriculum/   le cursus de l'année, un fichier par matière
 Tests/             la suite Swift Testing
 scripts/           générateur d'icône, options d'export
 ```
@@ -68,9 +71,17 @@ Une semaine est un fichier `Resources/Weeks/<lundi>.json`, nommé par la date du
 }
 ```
 
+`words` s'ajoute si la semaine met des mots sur la table: `{ "sight": ["un", "une"], "decode": ["je", "le"] }`. Le reste est facultatif.
+
 L'app charge tous les fichiers du dossier, les trie, et ouvre par défaut la plus récente déjà commencée. Les autres restent accessibles depuis l'écran de lancement. Une nouvelle semaine passe donc par une PR et un merge, et TestFlight livre le build.
 
 Les caractères de `tracing` doivent exister dans `GlyphLibrary`. Aujourd'hui: `a e i o u` en minuscule et majuscule, plus `0` à `9`.
+
+## Le cursus de l'année
+
+`Resources/Curriculum/francais.json` recopie les 36 semaines du cahier de l'enseignante: les sons enseignés, les mots éclair et les mots à décoder. `mathematiques.json` recopie les tranches de la grille des nombres, de 0 à 9 jusqu'à 90 à 99, puis la révision.
+
+Un bloc se joue dans le même dojo qu'une semaine, avec la matière qu'il porte et rien d'autre: les tuiles absentes ne s'affichent pas. Les lettres se cumulent d'un bloc au suivant, parce qu'un leurre qu'il n'a jamais vu n'est pas un leurre; les mots, eux, restent ceux du bloc. Un mot dont un homophone est dans la même liste n'y entre pas: à l'oreille la question n'aurait pas de réponse.
 
 ## Écran pour les parents
 

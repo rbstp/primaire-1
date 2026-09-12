@@ -1,0 +1,267 @@
+{
+  "schema": 1,
+  "subject": "francais",
+  "title": "Français",
+  "units": [
+    {
+      "id": "fr-01",
+      "title": "Semaine 1",
+      "focus": "a e i o u y",
+      "sounds": ["a", "e", "i", "o", "u", "y"]
+    },
+    {
+      "id": "fr-02",
+      "title": "Semaine 2",
+      "focus": "f, j, é",
+      "sounds": ["f", "j", "é"],
+      "sight": ["un", "une"]
+    },
+    {
+      "id": "fr-03",
+      "title": "Semaine 3",
+      "focus": "l, r, s",
+      "sounds": ["l", "r", "s"],
+      "sight": ["j'ai", "je suis"],
+      "decode": ["je", "le", "la", "joli"]
+    },
+    {
+      "id": "fr-04",
+      "title": "Semaine 4",
+      "focus": "ou, eu",
+      "sounds": ["ou", "eu"],
+      "sight": ["ou", "et", "elle", "joue"],
+      "decode": ["il", "jeu", "oui"]
+    },
+    {
+      "id": "fr-05",
+      "title": "Semaine 5",
+      "focus": "m, p",
+      "sounds": ["m", "p"],
+      "sight": ["en", "plus"],
+      "decode": ["ma", "ami", "papa", "par", "pour", "jour"]
+    },
+    {
+      "id": "fr-06",
+      "title": "Semaine 6",
+      "focus": "d, v",
+      "sounds": ["d", "v"],
+      "sight": ["il y a", "il est", "elle est"],
+      "decode": ["de", "du", "mardi", "jeudi"]
+    },
+    {
+      "id": "fr-07",
+      "title": "Semaine 7",
+      "focus": "b, n",
+      "sounds": ["b", "n"],
+      "sight": ["nous", "vous"],
+      "decode": ["bébé", "bleu", "animal"]
+    },
+    {
+      "id": "fr-08",
+      "title": "Semaine 8",
+      "focus": "t, ch",
+      "sounds": ["t", "ch"],
+      "sight": ["des", "les", "mes", "tes", "ses"],
+      "decode": ["tu", "cheveu"]
+    },
+    {
+      "id": "fr-09",
+      "title": "Semaine 9",
+      "focus": "è, le e qui fait sonner la consonne",
+      "sounds": ["è"],
+      "sight": ["très"],
+      "decode": ["mère", "père", "frère", "lire", "île", "bouche", "riche", "vide", "élève", "triste"]
+    },
+    {
+      "id": "fr-10",
+      "title": "Semaine 10",
+      "focus": "c dur, g dur",
+      "sounds": ["c", "g"],
+      "sight": ["avec"],
+      "decode": ["cou", "carte", "légume", "sac", "écrire"]
+    },
+    {
+      "id": "fr-11",
+      "title": "Semaine 11",
+      "focus": "an",
+      "sounds": ["an"],
+      "sight": ["dans", "blanc"],
+      "decode": ["maman", "blanche", "dimanche", "tante"]
+    },
+    {
+      "id": "fr-12",
+      "title": "Semaine 12",
+      "focus": "on, in",
+      "sounds": ["on", "in"],
+      "sight": ["on"],
+      "decode": ["mon", "son", "ton", "non", "bon", "matin", "lapin", "sapin", "oncle"]
+    },
+    {
+      "id": "fr-13",
+      "title": "Semaine 13",
+      "focus": "ez, ed, le verbe avoir",
+      "sounds": ["ez", "ed"],
+      "sight": ["chez", "nez", "pied", "j'ai", "tu as", "il a", "elle a", "nous avons", "vous avez", "ils ont", "elles ont"]
+    },
+    {
+      "id": "fr-14",
+      "title": "Semaine 14",
+      "focus": "le e muet du féminin",
+      "decode": ["rue", "amie", "jolie", "poupée", "journée", "bleue"]
+    },
+    {
+      "id": "fr-15",
+      "title": "Semaine 15",
+      "focus": "le verbe être, la lettre muette",
+      "sight": ["c'est", "je suis", "tu es", "il est", "elle est", "nous sommes", "vous êtes", "ils sont", "elles sont"],
+      "decode": ["chat", "chaton", "petit", "petite", "grand", "grande"]
+    },
+    {
+      "id": "fr-16",
+      "title": "Semaine 16",
+      "focus": "qu, un",
+      "sounds": ["qu", "un"],
+      "sight": ["qui", "que", "quand"],
+      "decode": ["quatre", "lundi", "brun", "brune", "bras"]
+    },
+    {
+      "id": "fr-17",
+      "title": "Semaine 17",
+      "focus": "ai, le verbe aimer",
+      "sounds": ["ai"],
+      "sight": ["mais", "ne … pas", "j'aime", "tu aimes", "il aime", "elle aime", "nous aimons", "vous aimez"],
+      "decode": ["aile", "paire", "lait", "laide", "semaine"]
+    },
+    {
+      "id": "fr-18",
+      "title": "Semaine 18",
+      "focus": "ê",
+      "sounds": ["ê"],
+      "sight": ["être"],
+      "decode": ["fête", "tête", "forêt"]
+    },
+    {
+      "id": "fr-19",
+      "title": "Semaine 19",
+      "focus": "oi",
+      "sounds": ["oi"],
+      "decode": ["moi", "toi", "joie", "trois", "froid", "froide", "soir", "voir", "noir"]
+    },
+    {
+      "id": "fr-20",
+      "title": "Semaine 20",
+      "focus": "ui, en",
+      "sounds": ["ui", "en"],
+      "decode": ["vendredi", "ventre", "tente", "pluie", "nuit", "enfant", "content", "parent", "dent", "vent"]
+    },
+    {
+      "id": "fr-21",
+      "title": "Semaine 21",
+      "focus": "o fermé, o ouvert",
+      "sounds": ["o"],
+      "decode": ["moto", "vélo", "mot", "gros", "grosse", "pot", "école", "porte", "robe"]
+    },
+    {
+      "id": "fr-22",
+      "title": "Semaine 22",
+      "focus": "eau",
+      "sounds": ["eau"],
+      "decode": ["eau", "beau", "chapeau", "peau", "beaucoup"]
+    },
+    {
+      "id": "fr-23",
+      "title": "Semaine 23",
+      "focus": "au",
+      "sounds": ["au"],
+      "decode": ["jaune", "mauve", "pauvre", "chaud", "chaude"]
+    },
+    {
+      "id": "fr-24",
+      "title": "Semaine 24",
+      "focus": "er à la fin des verbes",
+      "sounds": ["er"],
+      "decode": ["jouer", "regarder", "parler", "demander", "aimer"]
+    },
+    {
+      "id": "fr-25",
+      "title": "Semaine 25",
+      "focus": "n devient m devant m, b, p",
+      "decode": ["chambre", "jambe"]
+    },
+    {
+      "id": "fr-26",
+      "title": "Semaine 26",
+      "focus": "g doux et dur, gu",
+      "sounds": ["g", "gu"],
+      "decode": ["grand-maman", "grand-papa", "grand-mère", "grand-père", "long", "longue", "rouge", "nuage", "orange", "neige", "manger"]
+    },
+    {
+      "id": "fr-27",
+      "title": "Semaine 27",
+      "focus": "c doux et dur, ç",
+      "sounds": ["c", "ç"],
+      "decode": ["coup", "coeur", "couleur", "cinq", "doux", "douce", "garçon"]
+    },
+    {
+      "id": "fr-28",
+      "title": "Semaine 28",
+      "focus": "s, ss",
+      "sounds": ["s", "ss"],
+      "decode": ["samedi", "soeur", "six", "rose", "visage", "oiseau", "maison", "phrase", "gris", "grise", "cousin", "cousine", "classe", "poisson"]
+    },
+    {
+      "id": "fr-29",
+      "title": "Semaine 29",
+      "focus": "le e qui sonne è",
+      "decode": ["mercredi", "merci", "verte", "mer", "fer", "vert"]
+    },
+    {
+      "id": "fr-30",
+      "title": "Semaine 30",
+      "focus": "les lettres jumelles",
+      "sight": ["fils", "maïs"],
+      "decode": ["pomme", "comme", "bonne", "lettre"]
+    },
+    {
+      "id": "fr-31",
+      "title": "Semaine 31",
+      "focus": "des mots à mémoriser",
+      "sight": ["deux", "sept", "huit", "neuf", "dix", "oeil", "yeux"]
+    },
+    {
+      "id": "fr-32",
+      "title": "Semaine 32",
+      "focus": "ien, le verbe aller",
+      "sounds": ["ien"],
+      "sight": ["je vais", "tu vas", "il va", "elle va", "nous allons", "vous allez", "ils vont", "elles vont"],
+      "decode": ["chien", "bien"]
+    },
+    {
+      "id": "fr-33",
+      "title": "Semaine 33",
+      "focus": "ain, ein",
+      "sounds": ["ain", "ein"],
+      "sight": ["plein"],
+      "decode": ["main", "bain", "train"]
+    },
+    {
+      "id": "fr-34",
+      "title": "Semaine 34",
+      "focus": "le verbe faire",
+      "sight": ["je fais", "tu fais", "il fait", "elle fait", "nous faisons", "vous faites", "ils font", "elles font"]
+    },
+    {
+      "id": "fr-35",
+      "title": "Semaine 35",
+      "focus": "ill, eil, eille",
+      "sounds": ["ill", "eil", "eille"],
+      "decode": ["fille", "famille", "soleil", "oreille"]
+    },
+    {
+      "id": "fr-36",
+      "title": "Semaine 36",
+      "focus": "le verbe dire",
+      "sight": ["je dis", "tu dis", "il dit", "elle dit", "nous disons", "vous dites", "ils disent", "elles disent"]
+    }
+  ]
+}

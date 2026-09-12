@@ -11,6 +11,8 @@ struct Week: Codable, Equatable, Sendable, Identifiable {
     let letters: LetterPlan
     let numbers: NumberPlan
     let tracing: GlyphList
+    /// The words the week puts on the table. Optional in the file.
+    let words: WordPlan
     /// The classmates' first names, written as they are on the bus cards.
     /// Optional in the file, and two children sharing a name are one card.
     let names: [String]
@@ -21,7 +23,8 @@ struct Week: Codable, Equatable, Sendable, Identifiable {
     init(
         schema: Int, id: String, title: String, grade: String, teacher: String,
         days: [SchoolDay], letters: LetterPlan, numbers: NumberPlan,
-        tracing: GlyphList, names: [String] = [], tasks: [HomeworkTask]
+        tracing: GlyphList, words: WordPlan = WordPlan(), names: [String] = [],
+        tasks: [HomeworkTask]
     ) {
         self.schema = schema
         self.id = id
@@ -32,6 +35,7 @@ struct Week: Codable, Equatable, Sendable, Identifiable {
         self.letters = letters
         self.numbers = numbers
         self.tracing = tracing
+        self.words = words
         self.names = Week.unique(names)
         self.tasks = tasks
     }
@@ -47,6 +51,7 @@ struct Week: Codable, Equatable, Sendable, Identifiable {
         letters = try box.decode(LetterPlan.self, forKey: .letters)
         numbers = try box.decode(NumberPlan.self, forKey: .numbers)
         tracing = try box.decode(GlyphList.self, forKey: .tracing)
+        words = try box.decodeIfPresent(WordPlan.self, forKey: .words) ?? WordPlan()
         names = Week.unique(try box.decodeIfPresent([String].self, forKey: .names) ?? [])
         tasks = try box.decode([HomeworkTask].self, forKey: .tasks)
     }
@@ -59,6 +64,10 @@ struct Week: Codable, Equatable, Sendable, Identifiable {
     var monday: DayKey? { DayKey(isoDay: id) }
 
     var schoolDays: [SchoolDay] { days.filter(\.atSchool) }
+
+    var hasLetters: Bool { letters.vowels.count > 1 }
+    var hasNumbers: Bool { !numbers.digits.isEmpty }
+    var hasWords: Bool { words.all.count >= WordPlan.playable }
 }
 
 struct SchoolDay: Codable, Equatable, Sendable, Identifiable {
@@ -97,7 +106,11 @@ struct NumberPlan: Codable, Equatable, Sendable {
     /// than what he is actually working on.
     var focus: NumberSpan? = nil
 
-    var digits: [Int] { Array(from...max(from, to)) }
+    /// Empty when the plan holds no numbers at all, which is how a French
+    /// unit says it has none.
+    static let none = NumberPlan(from: 0, to: -1, counting: false)
+
+    var digits: [Int] { to < from ? [] : Array(from...to) }
 
     /// The numbers to ask most of the time. Empty when there is no focus or it
     /// lies outside the week, so callers fall back to the whole range.

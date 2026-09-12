@@ -1,8 +1,7 @@
 import Foundation
 
-/// The digits nought to nine. The writing order for 4, 5 and 8 varies between
-/// schools, so these follow the common Quebec sequence and are worth checking
-/// against his teacher's before he uses them much.
+/// The digits nought to nine, in the order his own class writes them: the
+/// strip on page 5 of the Nougat aide-mémoire, which reproduces Cahier A p. 2.
 extension GlyphLibrary {
     static let digits: [GlyphSpec] = [
         zero, one, two, three, four, five, six, seven, eight, nine,
@@ -45,28 +44,27 @@ extension GlyphLibrary {
         ]),
     ])
 
-    /// The slant and the bar first, then the downstroke.
+    /// A right angle, not a slant: down the short left stem, then the bar to
+    /// the right, then the long downstroke on its own.
     private static let four = GlyphSpec(character: "4", strokes: [
-        GlyphStroke(start: UnitPoint2(x: 0.61, y: Rule.cap), segments: [
-            .line(to: UnitPoint2(x: 0.25, y: 0.62)),
-            .line(to: UnitPoint2(x: 0.77, y: 0.62)),
+        GlyphStroke(start: UnitPoint2(x: 0.32, y: Rule.cap), segments: [
+            .line(to: UnitPoint2(x: 0.32, y: 0.62)),
+            .line(to: UnitPoint2(x: 0.80, y: 0.62)),
         ]),
-        GlyphStroke(start: UnitPoint2(x: 0.61, y: Rule.cap), segments: [
-            .line(to: UnitPoint2(x: 0.61, y: Rule.base)),
+        GlyphStroke(start: UnitPoint2(x: 0.62, y: Rule.cap), segments: [
+            .line(to: UnitPoint2(x: 0.62, y: Rule.base)),
         ]),
     ])
 
-    /// Down and round the belly first, then the hat, which is how it is taught
-    /// even though it looks backwards.
+    /// One movement from the top right: the hat leftwards, down the stem, then
+    /// the belly round. The pen never leaves the paper.
     private static let five = GlyphSpec(character: "5", strokes: [
-        GlyphStroke(start: UnitPoint2(x: 0.34, y: 0.14), segments: [
+        GlyphStroke(start: UnitPoint2(x: 0.71, y: 0.14), segments: [
+            .line(to: UnitPoint2(x: 0.34, y: 0.14)),
             .line(to: UnitPoint2(x: 0.34, y: 0.45)),
             .curve(to: UnitPoint2(x: 0.34, y: 0.85),
                    control1: UnitPoint2(x: 0.78, y: 0.41),
                    control2: UnitPoint2(x: 0.76, y: 0.89)),
-        ]),
-        GlyphStroke(start: UnitPoint2(x: 0.34, y: 0.14), segments: [
-            .line(to: UnitPoint2(x: 0.71, y: 0.14)),
         ]),
     ])
 

@@ -4,11 +4,9 @@ import SwiftUI
 struct DojoView: View {
     let week: Week
     let catalog: WeekCatalog
-    let changeWeek: () -> Void
 
     @Environment(ProgressStore.self) private var store
 
-    @State private var drillMode = DrillFactory.Mode.letters
     @State private var showsParentScreen = false
 
     var body: some View {
@@ -30,58 +28,15 @@ struct DojoView: View {
                         .foregroundStyle(Palette.cream.opacity(0.65).color)
 
                     LazyVGrid(columns: [GridItem(spacing: 14), GridItem(spacing: 14)], spacing: 18) {
-                        tile("Mode Lettres", "textformat.abc", .blue, .letters)
-                        tile("Mode Chiffres", "number", .black, .numbers)
-                        if !week.names.isEmpty {
-                            tile("Mode Prénoms", "person.text.rectangle", .blue, .names)
+                        ForEach(Array(activities.enumerated()), id: \.element) { index, activity in
                             NavigationLink {
-                                NameBuildView(week: week)
+                                destination(activity)
                             } label: {
-                                DojoTile(title: "Construis le prénom", symbol: "puzzlepiece.fill", tone: .black)
+                                label(activity, tone: activity.tone ?? (index.isMultiple(of: 2) ? .blue : .black))
                             }
                             .buttonStyle(DojoTileStyle())
                         }
-                        if DrillFactory.hasVowelGame(week) {
-                            NavigationLink {
-                                DrillView(week: week, mode: .constant(.vowels))
-                            } label: {
-                                DojoTile(title: "Les voyelles", symbol: nil, tone: .blue) {
-                                    BrickPictureView(picture: PictureLibrary.dojo.picture)
-                                        .frame(height: 64)
-                                }
-                            }
-                            .buttonStyle(DojoTileStyle())
-                        }
-                        if week.letters.alphabet {
-                            NavigationLink {
-                                AlphabetView(week: week)
-                            } label: {
-                                DojoTile(title: "L'alphabet", symbol: nil, tone: .black) {
-                                    DragonBuild(done: 1, total: 1, animated: false)
-                                        .frame(height: 64)
-                                }
-                            }
-                            .buttonStyle(DojoTileStyle())
-                        }
-                        if !week.tracing.isEmpty {
-                            NavigationLink {
-                                TraceModeView(week: week)
-                            } label: {
-                                DojoTile(title: "Le tracé", symbol: "hand.draw", tone: .blue)
-                            }
-                            .buttonStyle(DojoTileStyle())
-                        }
-                        NavigationLink {
-                            MissionLogView(week: week)
-                        } label: {
-                            DojoTile(title: "Mon carnet", symbol: "checklist", tone: .black)
-                        }
-                        .buttonStyle(DojoTileStyle())
                     }
-
-                    Button("Changer de semaine", action: changeWeek)
-                        .buttonStyle(NinjaButtonStyle(prominent: false))
-                        .padding(.top, 6)
                 }
                 .padding(20)
                 .frame(maxWidth: 620)
@@ -102,14 +57,87 @@ struct DojoView: View {
         }
     }
 
-    private func tile(_ title: String, _ symbol: String, _ tone: BrickTone, _ mode: DrillFactory.Mode) -> some View {
-        NavigationLink {
-            DrillView(week: week, mode: $drillMode)
-        } label: {
-            DojoTile(title: title, symbol: symbol, tone: tone)
+    /// Only what this week has material for: a block of the year's plan in
+    /// French offers no number game, and one in maths no letters and no words.
+    private var activities: [Activity] {
+        var list = DrillFactory.modes(for: week).map(Activity.drill)
+        if !week.names.isEmpty { list.append(.buildName) }
+        if DrillFactory.hasVowelGame(week) { list.append(.vowels) }
+        if week.letters.alphabet { list.append(.alphabet) }
+        if !week.tracing.isEmpty { list.append(.trace) }
+        if !week.tasks.isEmpty { list.append(.log) }
+        return list
+    }
+
+    @ViewBuilder private func destination(_ activity: Activity) -> some View {
+        switch activity {
+        case let .drill(mode): DrillView(week: week, mode: mode)
+        case .buildName: NameBuildView(week: week)
+        case .vowels: DrillView(week: week, mode: .vowels)
+        case .alphabet: AlphabetView(week: week)
+        case .trace: TraceModeView(week: week)
+        case .log: MissionLogView(week: week)
         }
-        .buttonStyle(DojoTileStyle())
-        .simultaneousGesture(TapGesture().onEnded { drillMode = mode })
+    }
+
+    @ViewBuilder private func label(_ activity: Activity, tone: BrickTone) -> some View {
+        switch activity {
+        case .vowels:
+            DojoTile(title: activity.title, symbol: nil, tone: tone) {
+                BrickPictureView(picture: PictureLibrary.dojo.picture)
+                    .frame(height: 64)
+            }
+        case .alphabet:
+            DojoTile(title: activity.title, symbol: nil, tone: tone) {
+                DragonBuild(done: 1, total: 1, animated: false)
+                    .frame(height: 64)
+            }
+        default:
+            DojoTile(title: activity.title, symbol: activity.symbol, tone: tone)
+        }
+    }
+}
+
+/// One tile of the dojo. The tones alternate down the grid, so the first one
+/// is always the blue brick whatever the week happens to carry.
+private enum Activity: Hashable {
+    case drill(DrillFactory.Mode)
+    case buildName
+    case vowels
+    case alphabet
+    case trace
+    case log
+
+    var title: String {
+        switch self {
+        case let .drill(mode): "Mode \(mode.title)"
+        case .buildName: "Construis le prénom"
+        case .vowels: "Les voyelles"
+        case .alphabet: "L'alphabet"
+        case .trace: "Le tracé"
+        case .log: "Mon carnet"
+        }
+    }
+
+    /// The dragon is laid in dark bricks, so its tile stays dark wherever the
+    /// alternation would have put it.
+    var tone: BrickTone? { self == .alphabet ? .black : nil }
+
+    var symbol: String? {
+        switch self {
+        case let .drill(mode):
+            switch mode {
+            case .letters: "textformat.abc"
+            case .numbers: "number"
+            case .words: "text.book.closed"
+            case .names: "person.text.rectangle"
+            case .vowels: nil
+            }
+        case .buildName: "puzzlepiece.fill"
+        case .trace: "hand.draw"
+        case .log: "checklist"
+        case .vowels, .alphabet: nil
+        }
     }
 }
 

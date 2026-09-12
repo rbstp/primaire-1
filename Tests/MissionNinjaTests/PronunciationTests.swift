@@ -48,6 +48,49 @@ import Testing
         #expect((0...20).map { Pronunciation.numberWord($0).text } == expected)
     }
 
+    /// The number grid runs to 100, and it is read in standard French, the
+    /// way the class writes it.
+    @Test func spellsOutTheWholeNumberGrid() {
+        #expect(Pronunciation.numberWord(21).text == "vingt-et-un")
+        #expect(Pronunciation.numberWord(30).text == "trente")
+        #expect(Pronunciation.numberWord(47).text == "quarante-sept")
+        #expect(Pronunciation.numberWord(51).text == "cinquante-et-un")
+        #expect(Pronunciation.numberWord(67).text == "soixante-sept")
+        #expect(Pronunciation.numberWord(70).text == "soixante-dix")
+        #expect(Pronunciation.numberWord(71).text == "soixante-et-onze")
+        #expect(Pronunciation.numberWord(72).text == "soixante-douze")
+        #expect(Pronunciation.numberWord(80).text == "quatre-vingts")
+        #expect(Pronunciation.numberWord(81).text == "quatre-vingt-un")
+        #expect(Pronunciation.numberWord(85).text == "quatre-vingt-cinq")
+        #expect(Pronunciation.numberWord(96).text == "quatre-vingt-seize")
+        #expect(Pronunciation.numberWord(100).text == "cent")
+    }
+
+    /// Two numbers said alike would make the listening drill unfair.
+    @Test func noTwoNumbersAreSaidAlike() {
+        let spoken = (0...100).map { Pronunciation.numberWord($0).text }
+        #expect(spoken.allSatisfy { !$0.isEmpty && $0.first?.isNumber != true })
+        #expect(Set(spoken).count == spoken.count)
+    }
+
+    /// The word, twice, like everything else the voice asks for.
+    @Test func saysAWordTwice() {
+        let script = Pronunciation.script(for: .spokenWord("maman"))
+        #expect(script.map(\.text) == ["maman", "maman"])
+        #expect(Pronunciation.correction(.word("maman")).last?.text == "maman")
+    }
+
+    /// "ne … pas" is written that way for the eye; read out loud the ellipsis
+    /// is noise.
+    @Test func doesNotReadTheEllipsisOfANegation() {
+        #expect(Pronunciation.word("ne … pas").text == "ne pas")
+    }
+
+    @Test func namesTheAccentsTheCurriculumAdds() {
+        #expect(Pronunciation.letterName("ê").text == "e accent circonflexe")
+        #expect(Pronunciation.letterName("ç").text == "c cédille")
+    }
+
     /// A name, twice, with nothing around it, like a letter or a number.
     @Test func saysANameTwice() {
         let script = Pronunciation.script(for: .spokenName("Zoé"))
@@ -111,7 +154,7 @@ import Testing
 
     @Test func fallsBackToTheCharacterItself() {
         #expect(Pronunciation.letterName("ß").text == "ß")
-        #expect(Pronunciation.numberWord(42).text == "42")
+        #expect(Pronunciation.numberWord(101).text == "101")
         #expect(Pronunciation.name("Dalya").text == "Dalya")
     }
 }

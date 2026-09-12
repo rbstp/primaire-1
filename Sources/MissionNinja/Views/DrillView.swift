@@ -6,7 +6,11 @@ import SwiftUI
 /// are their own tile, so they come with no switch.
 struct DrillView: View {
     let week: Week
-    @Binding var mode: DrillFactory.Mode
+
+    /// Owned here rather than bound to the dojo: the picker below changes it,
+    /// and a binding meant the tile that opened this screen had to set it on
+    /// the side, which every way of opening a link but a tap missed.
+    @State private var mode: DrillFactory.Mode
 
     @Environment(ProgressStore.self) private var store
     @Environment(Speaker.self) private var speaker
@@ -14,6 +18,11 @@ struct DrillView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var runner: DrillRunner?
+
+    init(week: Week, mode: DrillFactory.Mode) {
+        self.week = week
+        _mode = State(initialValue: mode)
+    }
 
     var body: some View {
         ZStack {
@@ -33,7 +42,7 @@ struct DrillView: View {
     @ViewBuilder private var content: some View {
         if let runner, let drill = runner.shown {
             VStack(spacing: 14) {
-                if mode != .vowels {
+                if mode != .vowels, switchable.count > 1 {
                     modePicker
                         .padding(.horizontal, 20)
                 }
@@ -74,14 +83,14 @@ struct DrillView: View {
         .frame(maxHeight: .infinity)
     }
 
+    private var switchable: [DrillFactory.Mode] { DrillFactory.modes(for: week) }
+
     /// In the body rather than the toolbar: beside an inline title it was
     /// cramped, and it is something he taps, so it should be big.
     private var modePicker: some View {
         Picker("Mode", selection: $mode) {
-            Text("Lettres").tag(DrillFactory.Mode.letters)
-            Text("Chiffres").tag(DrillFactory.Mode.numbers)
-            if !week.names.isEmpty {
-                Text("Prénoms").tag(DrillFactory.Mode.names)
+            ForEach(switchable, id: \.self) { mode in
+                Text(mode.title).tag(mode)
             }
         }
         .pickerStyle(.segmented)
@@ -108,7 +117,7 @@ private struct PromptView: View {
                 .multilineTextAlignment(.center)
 
             switch prompt {
-            case .spokenLetter, .spokenNumber, .spokenName:
+            case .spokenLetter, .spokenNumber, .spokenName, .spokenWord:
                 Button(action: replay) {
                     Image(systemName: "speaker.wave.3.fill")
                         .font(.system(size: 44, weight: .bold))
@@ -140,6 +149,7 @@ private struct PromptView: View {
         case .spokenLetter: "Écoute, puis touche la bonne lettre."
         case let .spokenNumber(value): value <= 9 ? "Écoute, puis touche le bon chiffre." : "Écoute, puis touche le bon nombre."
         case .spokenName: "Écoute, puis touche le bon prénom."
+        case .spokenWord: "Écoute, puis touche le bon mot."
         case .bricks: "Combien de briques vois-tu?"
         case .object: "Quelle lettre commence ce mot?"
         }
@@ -153,18 +163,18 @@ private struct ChoiceGrid: View {
     let isEnabled: Bool
     let pick: (DrillChoice) -> Void
 
-    private var isNames: Bool { kind == .hearName }
+    /// Names and words are read, not recognised at a glance, so they get a
+    /// row each. Two and three glyphs sit on one row, four go two by two.
+    /// Anything else leaves a hole where a tile should be.
+    private var stacked: Bool { kind == .hearName || kind == .hearWord }
 
-    /// Names stack one per row so five can be read left to right. Two and
-    /// three glyphs sit on one row, four go two by two. Anything else leaves
-    /// a hole where a tile should be.
     private var perRow: Int {
-        if isNames { return 1 }
+        if stacked { return 1 }
         return choices.count == 4 ? 2 : max(choices.count, 1)
     }
 
     private var glyphSize: CGFloat {
-        if isNames { return 34 }
+        if stacked { return 34 }
         return perRow >= 3 ? 58 : 74
     }
 
@@ -175,14 +185,14 @@ private struct ChoiceGrid: View {
     }
 
     var body: some View {
-        VStack(spacing: isNames ? 10 : 14) {
+        VStack(spacing: stacked ? 10 : 14) {
             ForEach(rows.indices, id: \.self) { row in
                 HStack(spacing: 14) {
                     ForEach(rows[row], id: \.self) { choice in
                         BigChoiceButton(
                             label: choice.label,
                             glyphSize: glyphSize,
-                            minHeight: isNames ? 62 : 104,
+                            minHeight: stacked ? 62 : 104,
                             state: state(choice),
                             isEnabled: isEnabled
                         ) {
