@@ -7,6 +7,7 @@ private func week(
     digitsTo: Int = 9,
     counting: Bool = true,
     focus: NumberSpan? = nil,
+    words: WordPlan = WordPlan(),
     names: [String] = []
 ) -> Week {
     Week(
@@ -19,6 +20,7 @@ private func week(
         letters: LetterPlan(vowels: vowels, alphabet: true),
         numbers: NumberPlan(from: 0, to: digitsTo, counting: counting, focus: focus),
         tracing: [],
+        words: words,
         names: names,
         tasks: []
     )
@@ -40,7 +42,44 @@ private func answered(_ drill: Drill) -> Int? {
     return value
 }
 
+private let classWords = WordPlan(sight: ["un", "une"], decode: ["je", "le", "la", "joli"])
+
 @Suite struct DrillFactoryTests {
+    @Test func buildsAFullWordSession() {
+        var random = SeededRandom(seed: 11)
+        let drills = DrillFactory.session(mode: .words, week: week(words: classWords), progress: WeekProgress(), random: &random)
+        #expect(drills.count == DrillFactory.drillsPerSession)
+        #expect(drills.allSatisfy { $0.kind == .hearWord })
+        for drill in drills {
+            #expect(drill.choices.count >= 3)
+            #expect(Set(drill.choices).count == drill.choices.count)
+            #expect(drill.isCorrect(drill.answer))
+            guard case let .word(word) = drill.answer else { Issue.record("not a word"); return }
+            #expect(classWords.all.contains(word))
+            #expect(drill.prompt == .spokenWord(word))
+        }
+    }
+
+    /// Two words on the table is a coin toss, not a game.
+    @Test func skipsTheWordGameWithoutEnoughWords() {
+        var random = SeededRandom(seed: 12)
+        for thin in [WordPlan(sight: ["un"]), WordPlan(sight: ["un", "une"])] {
+            let drills = DrillFactory.session(mode: .words, week: week(words: thin), progress: WeekProgress(), random: &random)
+            #expect(drills.isEmpty)
+            #expect(!DrillFactory.modes(for: week(words: thin)).contains(.words))
+        }
+    }
+
+    /// A French unit offers no number game and a maths one no letter game.
+    @Test func onlyOffersTheModesTheWeekHasMaterialFor() {
+        #expect(DrillFactory.modes(for: week(words: classWords)) == [.letters, .numbers, .words])
+        let french = week(digitsTo: -1, words: classWords)
+        #expect(DrillFactory.modes(for: french) == [.letters, .words])
+        let maths = week(vowels: [], digitsTo: 99)
+        #expect(DrillFactory.modes(for: maths) == [.numbers])
+        #expect(DrillFactory.modes(for: week(names: classNames)) == [.letters, .numbers, .names])
+    }
+
     @Test func buildsAFullLetterSession() {
         var random = SeededRandom(seed: 1)
         let drills = DrillFactory.session(mode: .letters, week: week(), progress: WeekProgress(), random: &random)

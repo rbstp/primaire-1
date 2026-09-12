@@ -4,7 +4,7 @@ import SwiftUI
 struct MissionNinjaApp: App {
     var body: some Scene {
         WindowGroup {
-            RootView(catalog: .bundled())
+            RootView(catalog: .bundled(), curriculum: .bundled())
         }
     }
 }

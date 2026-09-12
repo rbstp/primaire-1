@@ -29,8 +29,12 @@ targets:
       - path: Sources/MissionNinja
       - path: Resources/Assets.xcassets
       - path: Resources/PrivacyInfo.xcprivacy
-      # Folder reference: the week files ship as MissionNinja.app/Weeks/*.json
+      # Folder references: the plans ship as MissionNinja.app/Weeks/*.json
+      # and MissionNinja.app/Curriculum/*.json
       - path: Resources/Weeks
+        type: folder
+        buildPhase: resources
+      - path: Resources/Curriculum
         type: folder
         buildPhase: resources
     settings:

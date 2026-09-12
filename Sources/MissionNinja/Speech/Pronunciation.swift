@@ -23,7 +23,13 @@ enum Pronunciation {
     }
 
     static func numberWord(_ value: Int) -> Utterance {
-        Utterance(words[value] ?? String(value))
+        Utterance(frenchNumber(value) ?? String(value))
+    }
+
+    /// A word as it is written on the card. The "…" of "ne … pas" is there for
+    /// the eye; read out loud it becomes noise.
+    static func word(_ word: String) -> Utterance {
+        Utterance(word.replacingOccurrences(of: " … ", with: " "))
     }
 
     /// A name as it is said in class. "Mme" on a card is read out in full,
@@ -54,6 +60,9 @@ enum Pronunciation {
         case let .spokenName(name):
             let spoken = Pronunciation.name(name)
             return [spoken, spoken]
+        case let .spokenWord(text):
+            let spoken = Pronunciation.word(text)
+            return [spoken, spoken]
         case .bricks:
             return [Utterance("Combien de briques vois-tu?")]
         case let .object(word):
@@ -74,16 +83,46 @@ enum Pronunciation {
             return [Utterance("C'était"), numberWord(value)]
         case let .name(name):
             return [Utterance("C'était"), Pronunciation.name(name)]
+        case let .word(text):
+            return [Utterance("C'était"), Pronunciation.word(text)]
         }
     }
 
+    /// Nothing the French voice mangles: "ninja" came out wrong on the device.
     private static let cheers = [
         "Bravo!",
         "Excellent!",
-        "Bien joué, ninja!",
+        "Bien joué!",
         "C'est exact!",
         "Tu progresses vite!",
         "Parfait!",
+    ]
+
+    /// Standard French, the way the class writes it on the number grid:
+    /// soixante-dix, quatre-vingt-dix, and the hyphens all the way through.
+    private static func frenchNumber(_ value: Int) -> String? {
+        if let known = words[value] { return known }
+        switch value {
+        case 21...69:
+            guard let ten = tens[value / 10] else { return nil }
+            let unit = value % 10
+            if unit == 0 { return ten }
+            return unit == 1 ? "\(ten)-et-un" : "\(ten)-\(words[unit] ?? "")"
+        case 70...79:
+            let rest = value - 60
+            return rest == 11 ? "soixante-et-onze" : "soixante-\(words[rest] ?? "")"
+        case 80...99:
+            let rest = value - 80
+            return rest == 0 ? "quatre-vingts" : "quatre-vingt-\(words[rest] ?? "")"
+        case 100:
+            return "cent"
+        default:
+            return nil
+        }
+    }
+
+    private static let tens: [Int: String] = [
+        2: "vingt", 3: "trente", 4: "quarante", 5: "cinquante", 6: "soixante",
     ]
 
     private static let words: [Int: String] = [
@@ -128,5 +167,7 @@ enum Pronunciation {
         "z": Utterance("zède", ipa: "zɛd"),
         "é": Utterance("e accent aigu"),
         "è": Utterance("e accent grave"),
+        "ê": Utterance("e accent circonflexe"),
+        "ç": Utterance("c cédille"),
     ]
 }
