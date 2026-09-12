@@ -208,7 +208,8 @@ private struct AlphabetCell: View {
 
     var body: some View {
         Brick(tone: tone, studs: 2, depth: 5, cornerRadius: 7, pressed: isDone) {
-            GlyphMark(letter, size: 28)
+            Text(String(letter))
+                .font(Typography.glyph(28))
                 .foregroundStyle(isDone ? Palette.cream.opacity(0.45).color : .ninjaCream)
                 .frame(maxWidth: .infinity, minHeight: 50)
         }

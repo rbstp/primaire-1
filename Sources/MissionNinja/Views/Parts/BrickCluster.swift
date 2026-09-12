@@ -68,7 +68,8 @@ private struct CountingBrick: View {
             ZStack {
                 Color.clear.frame(width: 44, height: 22)
                 if let label {
-                    GlyphMark(label, size: 16)
+                    Text(label)
+                        .font(Typography.glyph(16))
                         .foregroundStyle(tone == .blue ? Color.ninjaCream : Color.ninjaInk)
                 }
             }
