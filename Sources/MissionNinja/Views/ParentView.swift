@@ -112,14 +112,9 @@ struct ParentView: View {
 
     private func listening(_ label: String, _ record: CharacterRecord, glyph: Bool) -> some View {
         HStack {
-            Group {
-                if glyph {
-                    GlyphMark(label, size: 22)
-                } else {
-                    Text(label).font(Typography.body)
-                }
-            }
-            .frame(minWidth: 30, alignment: .leading)
+            Text(label)
+                .font(glyph ? Typography.glyph(22) : Typography.body)
+                .frame(minWidth: 30, alignment: .leading)
             if record.attempts == 0 {
                 Text("jamais demandé")
                     .font(Typography.caption)

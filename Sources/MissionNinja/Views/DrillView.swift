@@ -183,7 +183,6 @@ private struct ChoiceGrid: View {
                             label: choice.label,
                             glyphSize: glyphSize,
                             minHeight: isNames ? 62 : 104,
-                            drawsGlyph: !isNames,
                             state: state(choice),
                             isEnabled: isEnabled
                         ) {

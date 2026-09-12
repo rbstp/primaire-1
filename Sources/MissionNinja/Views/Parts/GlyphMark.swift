@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// A character drawn with the strokes of GlyphLibrary rather than with the
-/// shape a font happens to have. Without it the a on a brick is SF Pro's two
-/// storey a while the a he traces has one storey, and at six they read as two
-/// different letters. What the library does not cover keeps the font.
+/// shape a font happens to have. Only the tracing picker uses it: the brick
+/// he taps there has to look like the stroke he is about to make, one storey
+/// a and all. Everywhere else the font stands. What the library does not
+/// cover keeps the font here too.
 struct GlyphMark: View {
     let text: String
     let size: CGFloat
