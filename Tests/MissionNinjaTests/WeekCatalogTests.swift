@@ -83,4 +83,26 @@ private func week(id: String) -> Week {
         #expect(shipped.days.first?.note == "Congé, Fête du travail")
         #expect(shipped.monday == DayKey(year: 2026, month: 9, day: 7))
     }
+
+    /// The second week adds the sounds f and j, stops the numbers at 12, and
+    /// is the first full week of school.
+    @Test func decodesTheSecondWeek() throws {
+        let shipped = try #require(WeekCatalog.bundled().week(id: "2026-09-14"))
+        #expect(shipped.letters.vowels == ["a", "e", "i", "o", "u", "y", "f", "j"])
+        #expect(shipped.numbers.digits == Array(0...12))
+        #expect(shipped.numbers.focus == nil)
+        #expect(shipped.schoolDays.count == 5)
+        #expect(shipped.names.count == 22)
+        #expect(!shipped.hasWords)
+        #expect(shipped.monday == DayKey(year: 2026, month: 9, day: 14))
+    }
+
+    /// Every drill draws its decoys from the week, so a week with nothing to
+    /// drill would open a dojo with no tile on it.
+    @Test func everyShippedWeekIsPlayable() {
+        for week in WeekCatalog.bundled().weeks {
+            #expect(week.hasLetters || week.hasNumbers || week.hasWords, "\(week.id)")
+            #expect(!week.tasks.isEmpty, "\(week.id)")
+        }
+    }
 }
