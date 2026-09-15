@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "2026-09-14",
+  "title": "Semaine du 14 au 18 septembre 2026",
+  "grade": "1re année",
+  "teacher": "Mme Catherine",
+  "days": [
+    { "name": "lundi", "atSchool": true, "note": null },
+    { "name": "mardi", "atSchool": true, "note": null },
+    { "name": "mercredi", "atSchool": true, "note": null },
+    { "name": "jeudi", "atSchool": true, "note": null },
+    { "name": "vendredi", "atSchool": true, "note": null, "homework": false }
+  ],
+  "letters": {
+    "vowels": ["a", "e", "i", "o", "u", "y", "f", "j"],
+    "alphabet": true
+  },
+  "numbers": {
+    "from": 0,
+    "to": 12,
+    "counting": true
+  },
+  "tracing": [
+    "a", "e", "i", "o", "u",
+    "A", "E", "I", "O", "U",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+  ],
+  "names": [
+    "Ariel", "Arthur", "Séréna", "Hayden", "Mme Sylvie", "Loïc", "Mila", "Charlie",
+    "Nolan", "Olivia", "Gabriel", "Jeanne", "Noah", "Zoé", "Lauralie", "Émile",
+    "Mme Catherine", "Madison", "Sam", "Alice", "Lénox", "Dalya"
+  ],
+  "tasks": [
+    { "id": "prenoms-autobus", "title": "Je reconnais le prénom des amis de la classe sur l'autobus", "place": "Cartable" },
+    { "id": "chanson-alphabet", "title": "Je chante la chanson de l'alphabet", "place": "Duo-tang rouge, p. 1" },
+    { "id": "son-f", "title": "Je lis les syllabes du son « f » dans l'encadré", "place": "Duo-tang rouge, p. 3", "days": ["lundi", "mardi"] },
+    { "id": "son-j", "title": "Je lis les syllabes du son « j » dans l'encadré", "place": "Duo-tang rouge, p. 4", "days": ["mercredi", "jeudi"] },
+    { "id": "syllabes-cartons", "title": "Je fais des syllabes avec mes cartons", "place": "Pochette de lecture, sac Ziploc" },
+    { "id": "glissade-grammaire", "title": "Je me pratique avec ma glissade", "place": "Pochette de lecture; coup de pouce dans le cartable, section Grammaire" },
+    { "id": "orthographe-semaine-1", "title": "J'écris les mots de la semaine 1, comme je peux, en majuscules ou en minuscules", "place": "Cartable, orthographe" },
+    { "id": "nombres-pochette", "title": "Je reconnais les nombres de 0 à 12", "place": "Pochette de lecture, sac Ziploc" },
+    { "id": "lire-nombres", "title": "Je lis les nombres", "place": "Cartable, Nombres, p. 1" }
+  ]
+}

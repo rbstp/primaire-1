@@ -5,10 +5,13 @@ import Testing
 @Suite struct GlyphLibraryTests {
     private let shipped: [Character] = Array("aeéèiouAEIOU0123456789")
 
-    @Test func coversEverythingTheWeekAsksToTrace() throws {
-        let week = try #require(WeekCatalog.bundled().week(id: "2026-09-07"))
-        for character in week.tracing.characters {
-            #expect(GlyphLibrary.glyph(for: character) != nil, "\(character) n'a pas de tracé")
+    @Test func coversEverythingTheWeeksAskToTrace() {
+        let weeks = WeekCatalog.bundled().weeks
+        #expect(!weeks.isEmpty)
+        for week in weeks {
+            for character in week.tracing.characters {
+                #expect(GlyphLibrary.glyph(for: character) != nil, "\(week.id): \(character) n'a pas de tracé")
+            }
         }
     }
 

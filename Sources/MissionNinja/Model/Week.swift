@@ -65,6 +65,9 @@ struct Week: Codable, Equatable, Sendable, Identifiable {
 
     var schoolDays: [SchoolDay] { days.filter(\.atSchool) }
 
+    /// The days the carnet lists the homework under.
+    var homeworkDays: [SchoolDay] { schoolDays.filter(\.homework) }
+
     var hasLetters: Bool { letters.vowels.count > 1 }
     var hasNumbers: Bool { !numbers.digits.isEmpty }
     var hasWords: Bool { words.all.count >= WordPlan.playable }
@@ -74,8 +77,28 @@ struct SchoolDay: Codable, Equatable, Sendable, Identifiable {
     let name: String
     let atSchool: Bool
     let note: String?
+    /// Whether the plan gives work to take home that day. The lesson grid
+    /// stops at Thursday even on a full week: Friday the pochette goes back.
+    let homework: Bool
 
     var id: String { name }
+
+    init(name: String, atSchool: Bool, note: String?, homework: Bool = true) {
+        self.name = name
+        self.atSchool = atSchool
+        self.note = note
+        self.homework = homework
+    }
+
+    /// Hand written because a missing key falls back to the default only here:
+    /// the synthesised decoder would throw on every week already shipped.
+    init(from decoder: any Decoder) throws {
+        let box = try decoder.container(keyedBy: CodingKeys.self)
+        name = try box.decode(String.self, forKey: .name)
+        atSchool = try box.decode(Bool.self, forKey: .atSchool)
+        note = try box.decodeIfPresent(String.self, forKey: .note)
+        homework = try box.decodeIfPresent(Bool.self, forKey: .homework) ?? true
+    }
 }
 
 struct LetterPlan: Codable, Equatable, Sendable {
@@ -129,4 +152,13 @@ struct HomeworkTask: Codable, Equatable, Sendable, Identifiable {
     let id: String
     let title: String
     let place: String?
+    /// The school days the plan assigns this one to, when it names them.
+    /// Absent or empty, and it belongs to every school day: an empty list is
+    /// a line of the plan written down, not a line to hide.
+    let days: [String]?
+
+    func runs(on day: SchoolDay) -> Bool {
+        guard let days, !days.isEmpty else { return true }
+        return days.contains(day.name)
+    }
 }

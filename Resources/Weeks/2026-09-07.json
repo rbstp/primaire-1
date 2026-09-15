@@ -9,7 +9,7 @@
     { "name": "mardi", "atSchool": true, "note": null },
     { "name": "mercredi", "atSchool": true, "note": "Réunion de parents à 18 h" },
     { "name": "jeudi", "atSchool": true, "note": null },
-    { "name": "vendredi", "atSchool": true, "note": "Pique-nique familial" }
+    { "name": "vendredi", "atSchool": true, "note": "Pique-nique familial", "homework": false }
   ],
   "letters": {
     "vowels": ["a", "e", "i", "o", "u", "y"],
