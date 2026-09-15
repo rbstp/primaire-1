@@ -6,7 +6,9 @@ import Testing
     private let shipped: [Character] = Array("aeéèiouAEIOU0123456789")
 
     @Test func coversEverythingTheWeeksAskToTrace() {
-        for week in WeekCatalog.bundled().weeks {
+        let weeks = WeekCatalog.bundled().weeks
+        #expect(!weeks.isEmpty)
+        for week in weeks {
             for character in week.tracing.characters {
                 #expect(GlyphLibrary.glyph(for: character) != nil, "\(week.id): \(character) n'a pas de tracé")
             }

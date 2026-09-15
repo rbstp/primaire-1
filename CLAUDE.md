@@ -51,7 +51,7 @@ C'est la tâche récurrente, et presque la seule. Je fournis le PDF du plan de l
    ```
 
 2. Créer `Resources/Weeks/<date du lundi>.json`, en suivant le schéma de `2026-09-07.json`. Les champs qui demandent un jugement:
-   - `days`: un jour par jour d'école, `atSchool: false` pour un congé, `note` pour ce qui sort de l'ordinaire (réunion, sortie, congé).
+   - `days`: un jour par jour d'école, `atSchool: false` pour un congé, `note` pour ce qui sort de l'ordinaire (réunion, sortie, congé). `homework: false` pour un jour d'école sans devoirs: la grille des leçons s'arrête au jeudi, le vendredi la pochette retourne à l'école. Le carnet affiche alors « Pas de devoirs » sous le jour.
    - `letters.vowels` et `numbers`: ce que la semaine demande de reconnaître, rien de plus. Le plan de leçons est la limite; les leurres d'un exercice sont tirés dans la semaine, donc y ajouter des caractères non enseignés fausserait l'exercice. Le `e` traîne ses accents avec lui (`LetterPlan.accents`), et chaque voyelle a besoin d'au moins un objet dans `PictureLibrary`, sinon elle ne sert que de leurre dans le jeu des voyelles.
    - `numbers.focus`: facultatif, la tranche sur laquelle les épreuves insistent (neuf fois sur dix) quand la semaine va plus loin que ce qu'il travaille vraiment. Une épreuve ne mélange jamais la tranche et le reste: un 4 parmi 12, 14 et 17 se devine sans lire.
    - `tracing`: les caractères à écrire au doigt. Chacun doit exister dans `GlyphLibrary`, sinon il est silencieusement ignoré.

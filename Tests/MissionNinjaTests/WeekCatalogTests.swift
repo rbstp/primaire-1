@@ -98,11 +98,15 @@ private func week(id: String) -> Week {
     }
 
     /// Every drill draws its decoys from the week, so a week with nothing to
-    /// drill would open a dojo with no tile on it.
+    /// drill would open a dojo with no tile on it. Two tasks sharing an id
+    /// share a tick, so ticking one would tick the other.
     @Test func everyShippedWeekIsPlayable() {
-        for week in WeekCatalog.bundled().weeks {
+        let weeks = WeekCatalog.bundled().weeks
+        #expect(!weeks.isEmpty)
+        for week in weeks {
             #expect(week.hasLetters || week.hasNumbers || week.hasWords, "\(week.id)")
             #expect(!week.tasks.isEmpty, "\(week.id)")
+            #expect(Set(week.tasks.map(\.id)).count == week.tasks.count, "\(week.id)")
         }
     }
 
@@ -122,16 +126,36 @@ private func week(id: String) -> Week {
         #expect(shipped.schoolDays.allSatisfy(alphabet.runs(on:)))
     }
 
-    /// A day named nowhere in the week would take its task off the carnet
-    /// without a word, and a whole line of the plan would go missing.
-    @Test func everyTaskDayIsADayOfItsWeek() {
-        for week in WeekCatalog.bundled().weeks {
-            let known = Set(week.days.map(\.name))
+    /// A day the week does not go to would take its task off the carnet
+    /// without a word, and a whole line of the plan would go missing. A day
+    /// off counts as one of those: the carnet lists nothing under it.
+    @Test func everyTaskDayIsASchoolDayOfItsWeek() {
+        let weeks = WeekCatalog.bundled().weeks
+        #expect(!weeks.isEmpty)
+        for week in weeks {
+            let known = Set(week.homeworkDays.map(\.name))
             for task in week.tasks {
                 for day in task.days ?? [] {
                     #expect(known.contains(day), "\(week.id): \(task.id) vise \(day)")
                 }
             }
         }
+    }
+
+    /// The lesson grid stops at Thursday on both weeks shipped so far, and
+    /// Friday sends the pochette back to school with nothing to do at home.
+    @Test func fridayCarriesNoHomework() {
+        for week in WeekCatalog.bundled().weeks {
+            #expect(week.homeworkDays.map(\.name) == ["lundi", "mardi", "mercredi", "jeudi"].filter { name in
+                week.schoolDays.contains { $0.name == name }
+            }, "\(week.id)")
+        }
+    }
+
+    /// An empty list is a line written down, not a line to hide, so it runs
+    /// all week like a task with no days at all.
+    @Test func anEmptyDayListStillRunsAllWeek() {
+        let task = HomeworkTask(id: "x", title: "x", place: nil, days: [])
+        #expect(task.runs(on: SchoolDay(name: "lundi", atSchool: true, note: nil)))
     }
 }
