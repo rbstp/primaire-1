@@ -105,4 +105,33 @@ private func week(id: String) -> Week {
             #expect(!week.tasks.isEmpty, "\(week.id)")
         }
     }
+
+    /// The plan hands the f to Monday and Tuesday and the j to Wednesday and
+    /// Thursday, so the carnet only shows each on its own days.
+    @Test func aTaskGivenToCertainDaysStaysOnThem() throws {
+        let shipped = try #require(WeekCatalog.bundled().week(id: "2026-09-14"))
+        let f = try #require(shipped.tasks.first { $0.id == "son-f" })
+        #expect(f.runs(on: SchoolDay(name: "lundi", atSchool: true, note: nil)))
+        #expect(!f.runs(on: SchoolDay(name: "jeudi", atSchool: true, note: nil)))
+    }
+
+    /// A task left with no days runs all week, which is what most of them do.
+    @Test func aTaskWithoutDaysRunsAllWeek() throws {
+        let shipped = try #require(WeekCatalog.bundled().week(id: "2026-09-14"))
+        let alphabet = try #require(shipped.tasks.first { $0.id == "chanson-alphabet" })
+        #expect(shipped.schoolDays.allSatisfy(alphabet.runs(on:)))
+    }
+
+    /// A day named nowhere in the week would take its task off the carnet
+    /// without a word, and a whole line of the plan would go missing.
+    @Test func everyTaskDayIsADayOfItsWeek() {
+        for week in WeekCatalog.bundled().weeks {
+            let known = Set(week.days.map(\.name))
+            for task in week.tasks {
+                for day in task.days ?? [] {
+                    #expect(known.contains(day), "\(week.id): \(task.id) vise \(day)")
+                }
+            }
+        }
+    }
 }

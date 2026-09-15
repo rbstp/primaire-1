@@ -33,8 +33,8 @@
   "tasks": [
     { "id": "prenoms-autobus", "title": "Je reconnais le prénom des amis de la classe sur l'autobus", "place": "Cartable" },
     { "id": "chanson-alphabet", "title": "Je chante la chanson de l'alphabet", "place": "Duo-tang rouge, p. 1" },
-    { "id": "son-f", "title": "Je lis les syllabes du son « f » dans l'encadré (lundi et mardi)", "place": "Duo-tang rouge, p. 3" },
-    { "id": "son-j", "title": "Je lis les syllabes du son « j » dans l'encadré (mercredi et jeudi)", "place": "Duo-tang rouge, p. 4" },
+    { "id": "son-f", "title": "Je lis les syllabes du son « f » dans l'encadré", "place": "Duo-tang rouge, p. 3", "days": ["lundi", "mardi"] },
+    { "id": "son-j", "title": "Je lis les syllabes du son « j » dans l'encadré", "place": "Duo-tang rouge, p. 4", "days": ["mercredi", "jeudi"] },
     { "id": "syllabes-cartons", "title": "Je fais des syllabes avec mes cartons", "place": "Pochette de lecture, sac Ziploc" },
     { "id": "glissade-grammaire", "title": "Je me pratique avec ma glissade", "place": "Cartable, coup de pouce, section Grammaire" },
     { "id": "orthographe-semaine-1", "title": "J'écris les mots de la semaine 1, comme je peux, en majuscules ou en minuscules", "place": "Cartable, orthographe" },

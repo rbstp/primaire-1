@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// The paper homework, tracked in the app so the whole lesson plan lives in one
-/// place. A day off is greyed out with its reason. Each tick pays one star, and
-/// only once per task per day.
+/// place. A day off is greyed out with its reason, and a task the plan gives to
+/// certain days only shows up on those. Each tick pays one star, and only once
+/// per task per day.
 struct MissionLogView: View {
     let week: Week
 
@@ -77,7 +78,7 @@ private struct DayCard: View {
                 }
 
                 if day.atSchool {
-                    ForEach(week.tasks) { task in
+                    ForEach(week.tasks.filter { $0.runs(on: day) }) { task in
                         TaskRow(
                             task: task,
                             isDone: isTicked(tick(day, task)),

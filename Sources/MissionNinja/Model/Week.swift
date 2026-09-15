@@ -129,4 +129,11 @@ struct HomeworkTask: Codable, Equatable, Sendable, Identifiable {
     let id: String
     let title: String
     let place: String?
+    /// The school days the plan assigns this one to, when it names them.
+    /// Absent, and it belongs to every day of the week.
+    var days: [String]? = nil
+
+    func runs(on day: SchoolDay) -> Bool {
+        days?.contains(day.name) ?? true
+    }
 }

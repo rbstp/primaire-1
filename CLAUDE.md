@@ -56,7 +56,7 @@ C'est la tâche récurrente, et presque la seule. Je fournis le PDF du plan de l
    - `numbers.focus`: facultatif, la tranche sur laquelle les épreuves insistent (neuf fois sur dix) quand la semaine va plus loin que ce qu'il travaille vraiment. Une épreuve ne mélange jamais la tranche et le reste: un 4 parmi 12, 14 et 17 se devine sans lire.
    - `tracing`: les caractères à écrire au doigt. Chacun doit exister dans `GlyphLibrary`, sinon il est silencieusement ignoré.
    - `names`: les prénoms des amis de la classe, écrits comme sur les cartes de l'autobus (« Mme Sylvie » inclus). Liste vide: les deux tuiles de prénoms disparaissent. Un prénom avec une espace se fait entendre mais ne se construit pas.
-   - `tasks`: les devoirs qui se font sur papier, un par ligne du plan, avec `place` pour le cahier et la page.
+   - `tasks`: les devoirs qui se font sur papier, un par ligne du plan, avec `place` pour le cahier et la page. `days` est facultatif: quand le plan confie une ligne à certains jours (« lundi/mardi »), les nommer là plutôt que dans le titre, et le carnet ne la montre que ces jours-là. Sans `days`, la tâche revient tous les jours d'école.
    - `words`: facultatif, les mots de la semaine, en `sight` et `decode` comme dans le cursus. Le plus souvent il suffit de recopier ceux du bloc de français correspondant.
 
 3. `make test`, puis une PR. Le merge sur `master` déclenche `testflight` et le build arrive sur l'appareil en une quinzaine de minutes.
