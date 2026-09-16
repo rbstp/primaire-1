@@ -6,8 +6,6 @@ import SwiftUI
 struct AlphabetView: View {
     let week: Week
 
-    private static let columns = 5
-
     @Environment(Speaker.self) private var speaker
     @Environment(SoundEffects.self) private var effects
     @Environment(ProgressStore.self) private var store
@@ -74,6 +72,12 @@ struct AlphabetView: View {
             StarBurst(trigger: starBursts)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+        .overlay(alignment: .topTrailing) {
+            if let run {
+                HintCountdown(readyAt: run.hint.readyAt)
+                    .padding(.trailing, 18)
+            }
+        }
         .navigationTitle("L'alphabet")
         .navigationBarTitleDisplayMode(.inline)
         // A new order every time the section is opened.
@@ -91,14 +95,15 @@ struct AlphabetView: View {
     /// Explicit rows rather than a grid, so the row holding the letter he is
     /// looking for can light up after two misses.
     private func grid(_ run: AlphabetRun) -> some View {
-        let columns = AlphabetView.columns
-        let rows = stride(from: 0, to: run.order.count, by: columns).map { start in
-            Array(run.order[start..<min(start + columns, run.order.count)])
-        }
-        let hinted = run.wantsHint ? run.expected.flatMap { run.order.firstIndex(of: $0) }.map { $0 / columns } : nil
-        return VStack(spacing: 10) {
+        let rows = AlphabetLayout.rows(run.order.count).map { Array(run.order[$0]) }
+        let hinted = run.wantsHint
+            ? run.expected
+                .flatMap { run.order.firstIndex(of: $0) }
+                .flatMap { AlphabetLayout.row(of: $0, count: run.order.count) }
+            : nil
+        return VStack(spacing: 8) {
             ForEach(rows.indices, id: \.self) { row in
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     ForEach(rows[row], id: \.self) { letter in
                         Button { touch(letter) } label: {
                             AlphabetCell(
@@ -110,11 +115,11 @@ struct AlphabetView: View {
                         .buttonStyle(.plain)
                         .disabled(singing != nil)
                     }
-                    ForEach(0..<(columns - rows[row].count), id: \.self) { _ in
+                    ForEach(0..<(AlphabetLayout.maxColumns - rows[row].count), id: \.self) { _ in
                         Color.clear.frame(maxWidth: .infinity, minHeight: 1)
                     }
                 }
-                .padding(6)
+                .padding(5)
                 .background {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(Palette.azure.opacity(hinted == row ? 0.22 : 0).color)
@@ -209,9 +214,9 @@ private struct AlphabetCell: View {
     var body: some View {
         Brick(tone: tone, studs: 2, depth: 5, cornerRadius: 7, pressed: isDone) {
             Text(String(letter))
-                .font(Typography.glyph(28))
+                .font(Typography.glyph(24))
                 .foregroundStyle(isDone ? Palette.cream.opacity(0.45).color : .ninjaCream)
-                .frame(maxWidth: .infinity, minHeight: 50)
+                .frame(maxWidth: .infinity, minHeight: 44)
         }
         .animation(.easeOut(duration: 0.15), value: isSinging)
         .accessibilityLabel("Lettre \(letter)")

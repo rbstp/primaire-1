@@ -4,7 +4,8 @@ import Foundation
 /// next one is real work rather than reading along a row.
 struct AlphabetRun: Equatable, Sendable {
     /// Two misses in a row and the row holding the letter lights up: a hint
-    /// that narrows the search without handing over the answer.
+    /// that narrows the search without handing over the answer. It is rationed
+    /// by `HintTimer`, or missing on purpose becomes the quickest way to it.
     static let hintAfterMisses = 2
 
     /// What a tap did. A letter already in the dragon is idle: he is playing
@@ -23,6 +24,13 @@ struct AlphabetRun: Equatable, Sendable {
     /// restart reshuffles but keeps them: without that, finding the a and
     /// restarting pays a star every second tap.
     private(set) var rewarded: Set<Character> = []
+    /// Lit by two misses in a row, put out by the next letter found. Stored
+    /// rather than computed: it is the moment of the second miss that spends
+    /// the hint, and a view must not spend one just by drawing itself.
+    private(set) var wantsHint = false
+    /// Kept across a reshuffle, so "Mélanger et recommencer" is not a way
+    /// around the wait.
+    private(set) var hint = HintTimer()
 
     init(letters: [Character] = LetterPlan.frenchAlphabet, random: inout SeededRandom) {
         self.letters = letters
@@ -32,7 +40,6 @@ struct AlphabetRun: Equatable, Sendable {
     var expected: Character? { reached < letters.count ? letters[reached] : nil }
     var isComplete: Bool { reached >= letters.count }
     var advance: Double { letters.isEmpty ? 1 : Double(reached) / Double(letters.count) }
-    var wantsHint: Bool { misses >= AlphabetRun.hintAfterMisses && !isComplete }
 
     func isDone(_ letter: Character) -> Bool {
         guard let position = letters.firstIndex(of: letter) else { return false }
@@ -42,11 +49,15 @@ struct AlphabetRun: Equatable, Sendable {
     /// A wrong tap costs nothing but the sound. The outcome carries the letter
     /// so the screen can file a star, or file the miss against the letter he
     /// was looking for rather than the one he hit.
-    mutating func touch(_ letter: Character) -> Touch {
+    mutating func touch(_ letter: Character, at now: Date = .now) -> Touch {
         guard let expected else { return .idle }
         guard letter == expected else {
             if isDone(letter) { return .idle }
             misses += 1
+            if misses >= AlphabetRun.hintAfterMisses, hint.isReady(at: now) {
+                wantsHint = true
+                hint.spend(at: now)
+            }
             return .missed(expected)
         }
         // Marked whether it pays or not, so a letter found after a miss
@@ -54,12 +65,15 @@ struct AlphabetRun: Equatable, Sendable {
         let pays = rewarded.insert(letter).inserted && misses == 0
         reached += 1
         misses = 0
+        wantsHint = false
         return .found(letter, pays: pays)
     }
 
     mutating func restart(random: inout SeededRandom) {
         let paid = rewarded
+        let waited = hint
         self = AlphabetRun(letters: letters, random: &random)
         rewarded = paid
+        hint = waited
     }
 }

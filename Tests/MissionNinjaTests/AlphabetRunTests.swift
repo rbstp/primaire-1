@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import MissionNinja
@@ -76,6 +77,48 @@ import Testing
         run.restart(random: &random)
         #expect(run.reached == 0)
         #expect(run.order != before)
+    }
+
+    /// He worked out that two wrong taps on purpose light up the answer, so a
+    /// hint is only good once a minute. The wait shows in the corner.
+    @Test func ratesTheHintToOnceAMinute() {
+        let start = Date(timeIntervalSince1970: 10_000)
+        var random = SeededRandom(seed: 16)
+        var run = AlphabetRun(letters: ["a", "b", "c"], random: &random)
+        _ = run.touch("c", at: start)
+        _ = run.touch("c", at: start)
+        #expect(run.wantsHint)
+        #expect(run.hint.remaining(at: start) == 60)
+
+        _ = run.touch("a", at: start)
+        #expect(!run.wantsHint)
+
+        // Two more on purpose, well inside the minute: nothing lights up.
+        _ = run.touch("c", at: start.addingTimeInterval(5))
+        _ = run.touch("c", at: start.addingTimeInterval(6))
+        #expect(!run.wantsHint)
+        #expect(run.misses == 2)
+
+        // Once the minute is out, a genuine pair of misses opens it again.
+        _ = run.touch("c", at: start.addingTimeInterval(61))
+        #expect(run.wantsHint)
+        #expect(run.hint.remaining(at: start.addingTimeInterval(61)) == 60)
+    }
+
+    /// Reshuffling used to be a way around the wait.
+    @Test func restartingKeepsTheWait() {
+        let start = Date(timeIntervalSince1970: 20_000)
+        var random = SeededRandom(seed: 17)
+        var run = AlphabetRun(random: &random)
+        _ = run.touch("z", at: start)
+        _ = run.touch("y", at: start)
+        #expect(run.wantsHint)
+        run.restart(random: &random)
+        #expect(!run.wantsHint)
+        #expect(run.hint.remaining(at: start) == 60)
+        _ = run.touch("z", at: start.addingTimeInterval(1))
+        _ = run.touch("y", at: start.addingTimeInterval(2))
+        #expect(!run.wantsHint)
     }
 
     /// Two misses in a row light up the row holding the letter; a hit, or a

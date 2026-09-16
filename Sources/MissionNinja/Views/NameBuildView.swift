@@ -3,7 +3,8 @@ import SwiftUI
 /// "Je me pratique à reconnaître le prénom des amis." A name he hears, its
 /// letters shuffled on bricks, and empty slots to click them into, left to
 /// right. The name is never written: after two misses the next brick lights
-/// up and the voice names its letter. Five names make a run.
+/// up and the voice names its letter, at most once a minute. Five names make
+/// a run.
 struct NameBuildView: View {
     let week: Week
 
@@ -42,6 +43,12 @@ struct NameBuildView: View {
                 }
             }
             StarBurst(trigger: starBursts)
+        }
+        .overlay(alignment: .topTrailing) {
+            if let build, !isFinished {
+                HintCountdown(readyAt: build.hint.readyAt)
+                    .padding(.trailing, 18)
+            }
         }
         .navigationTitle("Construis le prénom")
         .navigationBarTitleDisplayMode(.inline)
@@ -144,7 +151,8 @@ struct NameBuildView: View {
             isFinished = true
             return
         }
-        build = NameBuild(name: queue[index], random: &random)
+        // The wait for the next hint follows him from one name to the next.
+        build = NameBuild(name: queue[index], random: &random, hint: build?.hint ?? HintTimer())
         sayName()
     }
 }

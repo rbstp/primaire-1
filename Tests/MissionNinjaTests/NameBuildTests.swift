@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import MissionNinja
@@ -66,6 +67,46 @@ import Testing
         #expect(!run.wasClean)
         _ = run.touch(m)
         #expect(!run.wantsHint)
+    }
+
+    /// Same ration as the alphabet: missing on purpose buys one hint a minute.
+    @Test func ratesTheHintToOnceAMinute() {
+        let start = Date(timeIntervalSince1970: 30_000)
+        var run = build("Mila")
+        let a = run.tiles.first { $0.letter == "a" }!
+        let m = run.tiles.first { $0.letter == "M" }!
+        _ = run.touch(a, at: start)
+        _ = run.touch(a, at: start)
+        #expect(run.wantsHint)
+        _ = run.touch(m, at: start)
+        #expect(!run.wantsHint)
+
+        let i = run.tiles.first { $0.letter == "i" }!
+        _ = run.touch(a, at: start.addingTimeInterval(5))
+        _ = run.touch(a, at: start.addingTimeInterval(6))
+        #expect(!run.wantsHint)
+        #expect(!run.isHinted(i))
+
+        _ = run.touch(a, at: start.addingTimeInterval(61))
+        #expect(run.wantsHint)
+        #expect(run.isHinted(i))
+    }
+
+    /// The wait follows him to the next name of the run.
+    @Test func carriesTheWaitToTheNextName() {
+        let start = Date(timeIntervalSince1970: 40_000)
+        var random = SeededRandom(seed: 21)
+        var first = NameBuild(name: "Mila", random: &random)
+        let a = first.tiles.first { $0.letter == "a" }!
+        _ = first.touch(a, at: start)
+        _ = first.touch(a, at: start)
+        #expect(first.wantsHint)
+
+        var second = NameBuild(name: "Nolan", random: &random, hint: first.hint)
+        let n = second.tiles.last { $0.letter == "n" }!
+        _ = second.touch(n, at: start.addingTimeInterval(3))
+        _ = second.touch(n, at: start.addingTimeInterval(4))
+        #expect(!second.wantsHint)
     }
 
     @Test func doesNothingOnceComplete() {

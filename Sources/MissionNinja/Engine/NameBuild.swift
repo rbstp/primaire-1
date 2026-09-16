@@ -1,7 +1,8 @@
 import Foundation
 
 /// Rebuilding a name he hears from its letters, shuffled on screen. Two misses
-/// in a row and the next letter is pointed out, so he is never stuck.
+/// in a row and the next letter is pointed out, so he is never stuck, but only
+/// once a minute: see `HintTimer`.
 struct NameBuild: Equatable, Sendable {
     static let hintAfterMisses = 2
 
@@ -17,9 +18,17 @@ struct NameBuild: Equatable, Sendable {
     private(set) var placed: [Int] = []
     private(set) var misses = 0
     private(set) var totalMisses = 0
+    /// Lit by two misses in a row, put out by the next letter placed. Stored
+    /// rather than computed: the second miss is what spends the hint, and a
+    /// view must not spend one just by drawing itself.
+    private(set) var wantsHint = false
+    /// Handed on from one name to the next, so the wait is not reset by
+    /// reaching the end of a name.
+    private(set) var hint: HintTimer
 
-    init(name: String, random: inout SeededRandom) {
+    init(name: String, random: inout SeededRandom, hint: HintTimer = HintTimer()) {
         self.name = name
+        self.hint = hint
         let ordered = Array(name).enumerated().map { Tile(id: $0.offset, letter: $0.element) }
         var shuffled = random.shuffled(ordered)
         // A name that lands already in order is not a puzzle.
@@ -36,7 +45,6 @@ struct NameBuild: Equatable, Sendable {
     var expected: Character? { reached < letters.count ? letters[reached] : nil }
     var isComplete: Bool { reached >= letters.count }
     var wasClean: Bool { totalMisses == 0 }
-    var wantsHint: Bool { misses >= NameBuild.hintAfterMisses && !isComplete }
 
     func isPlaced(_ tile: Tile) -> Bool { placed.contains(tile.id) }
 
@@ -50,13 +58,21 @@ struct NameBuild: Equatable, Sendable {
         index < reached ? letters[index] : nil
     }
 
-    mutating func touch(_ tile: Tile) -> Bool {
+    mutating func touch(_ tile: Tile, at now: Date = .now) -> Bool {
         guard !isComplete, !isPlaced(tile), tile.letter == expected else {
-            if !isComplete { misses += 1; totalMisses += 1 }
+            if !isComplete {
+                misses += 1
+                totalMisses += 1
+                if misses >= NameBuild.hintAfterMisses, hint.isReady(at: now) {
+                    wantsHint = true
+                    hint.spend(at: now)
+                }
+            }
             return false
         }
         placed.append(tile.id)
         misses = 0
+        wantsHint = false
         return true
     }
 }
